@@ -5,6 +5,23 @@ close after sunset, and more features are planned: RFID bird tracking, feeders,
 leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 [AGENTS.md](AGENTS.md) for the full design and the hardware it uses.
 
+## How this project is built
+
+Contributors are encouraged to use AI coding agents (Claude Code, or any
+other) to write code and docs. Every agent follows the same rules, set out in
+[AGENTS.md](AGENTS.md). For transparency, every commit and pull request names
+the AI tool and model that helped write it, so the history shows which agents
+built the project.
+
+**A human is always in charge of the results:**
+- People decide what gets built.
+- A person tests every change on real hardware before it's merged.
+- Any data the system collects (bird tracking, sensor readings, battery
+  status) is checked by a person against what really happened before anyone
+  relies on it.
+
+AI writes the code; humans verify that it works in the loft.
+
 ## Setting up your own loft
 
 1. Install the [Arduino IDE](https://www.arduino.cc/en/software) and, in the
