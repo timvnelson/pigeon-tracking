@@ -2,7 +2,7 @@
 
 Arduino automation for a homing-pigeon loft. Loft doors open at sunrise and
 close after sunset, and more features are planned: RFID bird tracking, feeders,
-leak sensors, a mobile release cage, and a Home Assistant dashboard. See
+leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 [AGENTS.md](AGENTS.md) for the full design and the hardware it uses.
 
 ## Setting up your own loft
