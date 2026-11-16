@@ -75,8 +75,15 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 - After a merge, pull `main`. If anything changed during testing and this file no longer matches, fix it on the next branch.  
 
 **Before pushing code**  
-- Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed). Fix all warnings.  
+- Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed: `arduino-cli core install arduino:renesas_uno`). Fix all warnings.  
 - Compiling proves only that it builds. Describe what still needs testing on the hardware.  
+- **GitHub compile check** (`.github/workflows/compile.yml`): every push and PR is compiled on GitHub from the public `loft_settings.example.h`, both with and without Wi-Fi, and any error or warning in `loft/` fails it. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
+
+**Working with a board on USB** (only if your agent runs on the computer the Arduino is plugged into)  
+- Find the port: `arduino-cli board list` (usually `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem…` on macOS, `COMx` on Windows).  
+- Upload: `arduino-cli upload -p <port> --fqbn arduino:renesas_uno:unor4wifi loft`. **Tell the owner before uploading if real doors are connected**: an upload resets the board. Boot safety keeps the doors closed during a reset, but the owner should know.  
+- Serial: `arduino-cli monitor -p <port> --config 115200`. The monitor runs until stopped, so run it with a timeout or in the background, and capture its output.  
+- Serial output shows what the firmware *reports*, not what the hardware *does*. The owner confirms physical behaviour (relays clicking, LEDs, doors) before anything counts as working.  
 
 **Privacy and reuse**  
 - Follow the Per-loft data rule (Section 0). Never commit location, owner names, passwords or anything else unique to one loft. Never print or commit `loft_settings.h`.  
