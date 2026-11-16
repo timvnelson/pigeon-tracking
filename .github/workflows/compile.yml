@@ -1,5 +1,5 @@
-# Compile check: builds the loft firmware for the Arduino UNO R4 WiFi on every
-# push and pull request, using the same arduino-cli command contributors run
+# Compile check: builds the loft firmware for the Arduino UNO R4 WiFi for every
+# pull request change and every push to main, using the same arduino-cli command contributors run
 # locally. It builds from the public template (loft_settings.example.h), not
 # anyone's private settings, so it proves the code works for a new owner.
 #
@@ -9,7 +9,9 @@ name: Compile check
 
 on:
   push:
-  pull_request:
+    branches: [main]   # after every merge
+  pull_request:        # every change to a pull request
+  workflow_dispatch:   # "Run workflow" button on GitHub's Actions tab
 
 jobs:
   compile:
