@@ -4,15 +4,10 @@
 #include <RTC.h>
 #include <WiFiS3.h>
 
-// Wi-Fi credentials live in secrets.h, which git ignores. Copy
-// secrets.example.h to secrets.h and fill it in. Without it the loft still
-// works, but the clock has to be set by hand over USB ("settime").
-#if __has_include("secrets.h")
-#include "secrets.h"
-#define HAVE_WIFI_SECRETS 1
-#else
-#define HAVE_WIFI_SECRETS 0
-#endif
+// Wi-Fi details come from loft_settings.h (LOFT_WIFI_SSID / _PASSWORD).
+// Without them the loft still works, but the clock has to be set by hand
+// over USB ("settime").
+#define HAVE_WIFI_SECRETS LOFT_HAS_WIFI
 
 namespace TimeKeeper {
 
@@ -60,9 +55,9 @@ bool syncNow() {
   }
   if (WiFi.status() != WL_CONNECTED) {
     Serial.print(F("[time] connecting to Wi-Fi \""));
-    Serial.print(WIFI_SSID);
+    Serial.print(LOFT_WIFI_SSID);
     Serial.println('"');
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);  // blocks for up to ~10 s
+    WiFi.begin(LOFT_WIFI_SSID, LOFT_WIFI_PASSWORD);  // blocks for up to ~10 s
   }
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println(F("[time] Wi-Fi connect failed"));
