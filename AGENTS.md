@@ -55,6 +55,8 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 
 **This file is the project's memory.** It lives in the repo so every agent and every person gets the same picture. Read it fully before doing anything. Section 0 (Confirmed Hardware Facts) overrides everything else; if the code or another section disagrees with it, fix them to match. Never guess about hardware: if something is listed as unknown, ask the owner.  
 
+**Keep project knowledge in the project.** When you learn or decide something about this project, write it in this file or in `docs/`. That covers a hardware fact, a design decision, a convention or a lesson from testing. Then every contributor's agent works from the same information and behaves the same way. How you set up your own tools stays your business.  
+
 **Branches and merging**  
 - Never commit directly to `main`, not even docs. All work goes on a branch, and `main` changes only when the owner merges a pull request.  
 - A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
