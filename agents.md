@@ -2,11 +2,11 @@
 # AI System Prompt & Architecture: Bird Loft & Release Cage Automation  
   
 ### Non-Technical Summary  
-This project builds an automated, smart management system for homing pigeons/birds split across two main locations: a stationary home loft and a mobile release cage.  
+This project builds an automated, smart management system for homing pigeons/birds made of two completely separate kinds of system: a stationary home loft, and a fleet of mobile release cages (10+). Each cage is its own independent system.  
   
-At the home loft, an intelligent controller automatically secures entrance doors at night, tracks individual birds returning via leg bands, regulates feeding schedules by opening and closing feeder covers, and watches for water spills. Out in the field, a mobile release cage monitors surrounding weather conditions, tracks its own location via GPS only when it senses it is being moved, and constantly verifies which birds are still inside using a floor grid of scanners.  
+At the home loft, an intelligent controller automatically secures entrance doors at night, tracks individual birds returning via leg bands, regulates feeding schedules by opening and closing feeder covers, and watches for water spills. Out in the field, each release cage monitors surrounding weather conditions, tracks its own location via GPS only when it senses it is being moved, and constantly verifies which birds are still inside using a floor grid of scanners.  
   
-Both systems are powered by battery backup units so they never fail during a power outage. They communicate wirelessly back to a central home server, which collects all the data and displays an easy-to-read dashboard on your phone or computer.  
+The loft and every release cage each have their own battery unit: the loft's covers power outages, and each cage's lets it run away from home. They communicate wirelessly back to a central home server, which collects all the data and displays an easy-to-read dashboard on your phone or computer.  
 
 ---
 
@@ -27,6 +27,8 @@ Only the project owner adds facts here, after checking the real hardware. If ano
 - **Anti-pinch:** if the door meets resistance while closing, it retracts for 10 s and then tries again. Firmware must not treat a door that is still open shortly after power is removed as a fault until that retry window has passed.  
 - **Opening:** 9.5" x 10". Operating range: -15°F to 140°F.  
 - **Response time:** the door starts moving a couple of seconds after its power is switched on or off (owner confirmed).  
+- **Power connector:** a 5.5 x 2.1 mm DC barrel jack, where the solar panel originally plugged in (owner confirmed). The MILAPEAK 5.5 x 2.1 mm pigtails fit it.  
+- **Wire runs:** the reference loft's longest run from the UPS to a door is about 35 ft of 18 AWG. That loses about 0.45 V at 1 A, so the door still gets about 4.5 V. See the run-length table in `docs/1-parts-list.md`.  
 - **Still unknown (do not guess, ask the owner):**  
     - How much current each door actually draws when its battery is full compared with when it is charging.  
 
@@ -63,15 +65,17 @@ This project is meant to be reused: anyone can buy the suggested hardware and in
 - **Feeder Control:** Stepper motors controlled via driver modules (e.g., A4988/DRV8825) to regulate feeding access.  
 - **Water Leak Sensors:** Integrated to detect overflow.  
 - **Power System:**  
-    - UPS Module 3S (3x 18650 batteries, 12.6V 2A input charger). Shared with the Release Cage Arduino.  
+    - LAFVIN UPS Module 3S (3x 18650 batteries, 12.6V 2A input charger). Used by the loft only. It ships with its own charger power supply; the three 18650 cells are bought separately.  
     - Outputs 5V 5A continuous via the main Type-C/XH2.54 port.  
-    - Wiring: 18 AWG stranded pure copper wire. Ground runs to a distribution block; Positive runs to a distribution block, then through relay COM/NO terminals out to each door's power input (4.2-5.0 V, 1 A).  
+    - **Battery reporting (planned feature):** the UPS has an I2C interface that reports battery voltage, current and power. The loft Arduino will read it and publish the battery status to Home Assistant: on mains or on battery, charge level, and a warning when the battery is low. The I2C chip, its address and its logic voltage are still to be confirmed on the real board (the Qwiic connector is 3.3 V I2C; the UNO header pins are 5 V).  
+    - Wiring: 18 AWG stranded pure copper wire. Keep it out of reach of rats (they chewed the old solar-panel cables). Ground runs to a distribution block; Positive runs to a distribution block, then through relay COM/NO terminals out to each door's power input (4.2-5.0 V, 1 A).  
 - **Connectivity & Home Server:** MQTT protocol over Wi-Fi (or future Ethernet shield like W5500) back to the home server (Home Assistant with the Mosquitto MQTT broker; see Section 4).  
 
 ---
   
-## 3. Release Cage Arduino Project  
-- **Power System:** Runs on the same UPS Module 3S as the Loft Arduino.  
+## 3. Release Cage Arduino Project (separate system; work starts later)  
+The release cages are **completely separate** from the loft: separate hardware, separate firmware (its own folder, e.g. `cage/`), and nothing shared. There are **10+ cages**, and each one has its own UPS, Arduino, environmental sensors, GPS and RFID. Every cage reports to Home Assistant on its own, so the firmware must give each cage a unique identity (from its per-cage settings file).  
+- **Power System:** each cage has its own UPS and batteries. **The battery must last at least 30 hours per charge**, so that one overnight recharge always leaves a cage ready to go. Every hardware and firmware choice for the cage must be checked against this power budget.  
 - **Environmental Sensors:** BME280 (Temperature, Humidity, Barometric Pressure/Altimeter) and BH1750 (Sun brightness/Lux). Both share I2C lines (SDA/SCL) with ultra-low power draw.  
 - **Motion & GPS:** MPU6050 or ADXL345 accelerometer wired to a hardware interrupt pin. Wakes up the NEO-6M GPS module only when physical movement is detected to conserve battery.  
 - **Connectivity:** Cellular module (e.g., SIM800L/SIM7600) when away from home (kept in continuous idle/network standby during daytime 1-minute updates, deep sleep PSM at night); switches to Wi-Fi when at home.  
@@ -111,17 +115,8 @@ Update this section on every feature branch so that once merged it describes wha
 - **Device setup: MQTT Discovery.** The Arduinos publish Home Assistant discovery messages so their doors and sensors appear as entities automatically, with no manual YAML.  
 - **Hosting:** Home Assistant should run on its own dedicated machine, booting from an SSD rather than an SD card, because its database writes wear SD cards out.  
 - **Optional later:** Node-RED, as a Home Assistant add-on, if visual flow-based automations are wanted.  
-- **Data Storage:** Centralizes and stores all sensor telemetry, bird tracking logs, and system states from both the Loft and Release Cage Arduinos.  
+- **Data Storage:** Centralizes and stores all sensor telemetry, bird tracking logs, and system states from the loft and every release cage.  
   
   
-### These are the products purchased so far:  
-[Arduino UNO R4 WiFi [ABX00087] - Renesas RA4M1 + ESP32-S3, Wi-Fi, Bluetooth, USB-C, CAN, 12-bit DAC, OP AMP, Qwiic Connector, 12x8 LED Matrix for Advanced IoT & Embedded Projects](https://www.amazon.com/dp/B0C8V88Z9D?ref=fed_share)  
-[Pure Copper 18 AWG Red & Black Bonded Zip Wire Automotive Cable – 100 ft | 100% OFC Double Conductor Duplex for Car Audio Amplifier Speaker Dashboard Harness LED Light Trailer Hookup Primary Wiring](https://www.amazon.com/dp/B0CYFQM79X?ref=fed_share)  
-[MILAPEAK (Real 18AWG) 10 Pair 12V 5A DC Pigtail Barrel Plug Connector Cable | 2.1mm x 5.5mm, Male & Female DC Power Pigtail Connectors, for CCTV Security Camera, 12V Power Supply Adapter, LED, Router](https://www.amazon.com/dp/B072BXB2Y8?ref=fed_share)  
-[APIELE 15A Screw Terminal Block 4/5/6 Position Dual Row Covered 600V Pre-Insulated Terminal Barrier Strips (6PCS 15A 4P/5P/6P+6PCS Wiring Strips)](https://www.amazon.com/dp/B0D7VRSH1G?ref=fed_share)  
-[Double Wire Connector Press the Broken Wire with Pliers | Low Voltage Wire for 16-20AWG,2 Pin Quick Disconnect Electrical Secure Connectors with Locking Buckle](https://www.amazon.com/dp/B0H9YN2RV3?ref=fed_share)  
-[ELEGOO 8 Channel DC 5V Relay Module with Optocoupler for Arduino Projects | Compatible with Arduino UNO R3 MEGA 1280 DSP ARM PIC AVR STM32, Active-low Inputs, NO/NC Terminals, Status LEDs](https://www.amazon.com/dp/B09ZQRLD95?ref=fed_share)  
-[LAFVIN Uninterruptible Power Supply (UPS) Module for Raspberry Pi/Jetson Nano Supports Charging and Power Output at The Same Time 3S & 5V 5A Output](https://www.amazon.com/dp/B0G2SJPWLR?ref=fed_share)  
-￼  
-  
-  
+### Parts
+The loft parts list, with links and notes, is in [`docs/1-parts-list.md`](docs/1-parts-list.md).
