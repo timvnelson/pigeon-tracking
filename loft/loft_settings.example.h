@@ -3,7 +3,8 @@
 //
 //  1. Copy this file to "loft_settings.h" in the same folder.
 //  2. Fill in your own details below.
-//  3. Delete the #error line.
+//  3. Delete the "#error" line below. It stops the build until you have
+//     edited this file, so the placeholder values can't be uploaded by mistake.
 //
 //  loft_settings.h is listed in .gitignore, so your location, name and
 //  passwords never reach GitHub. Never put these details anywhere else in

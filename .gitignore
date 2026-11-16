@@ -6,3 +6,11 @@ build/
 *.bin
 *.hex
 *.elf
+
+# AI agent tool settings (kept on each contributor's machine; see AGENTS.md)
+.claude/
+.cursor/
+.aider*
+.continue/
+.windsurf/
+.github/copilot-instructions.md

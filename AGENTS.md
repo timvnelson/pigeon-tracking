@@ -57,6 +57,10 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 
 **Keep project knowledge in the project.** When you learn or decide something about this project, write it in this file or in `docs/`. That covers a hardware fact, a design decision, a convention or a lesson from testing. Then every contributor's agent works from the same information and behaves the same way. How you set up your own tools stays your business.  
 
+**Keep the repo agent-neutral.** Every contributor may use a different AI tool, so the repo favours none of them.  
+- Don't commit tool-specific folders or settings (e.g. `.claude/`, `.cursor/`, `.aider*`, `.github/copilot-instructions.md`). Keep them on your own machine; the common ones are already in `.gitignore`.  
+- The only exception is a pointer file for a tool that doesn't read `AGENTS.md` by itself (like `CLAUDE.md`). It holds nothing but a line telling the agent to read this file. If your tool needs one, add one the same way. Never put rules in it.  
+
 **Branches and merging**  
 - Never commit directly to `main`, not even docs. All work goes on a branch, and `main` changes only when the owner merges a pull request.  
 - A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
@@ -68,7 +72,7 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 - Every merge into `main` must carry a description saying what the system now does. Keep the PR title and description up to date as the branch grows, so they can serve as the merge description.  
 - **AI agents are welcome; humans verify.** Contributors may use any AI agent. But every change to hardware behaviour or data collection (door control, RFID tracking, sensor readings, battery status, anything reported to Home Assistant) must be tested by a person on real hardware before it's merged. Collected data must also be checked by a person against what really happened. Never claim something works on hardware just because it compiles; say what a person still needs to test.  
 - **Attribution (owner's rule):** credit the AI honestly, without implying no human was involved.  
-    - **Always name the specific AI tool and model, for transparency** (e.g. "Claude Code, Claude Opus 5.5"). Never leave it out or make it vague: the project wants an honest record of which AI agents built it.  
+    - **Always name the specific AI tool and model, for transparency** (e.g. "Claude Code, Claude Opus 5.5", "GitHub Copilot, <model>", "Cursor, <model>"; use whatever tool and model you actually used). Never leave it out or make it vague: the project wants an honest record of which AI agents built it.  
     - Commits: the human contributor is the author, and the AI is credited with a `Co-Authored-By:` line naming that tool or model.  
     - PR descriptions end with: *Code written with <AI tool and model>; reviewed and merged by the project owner.* If no AI was used, say so.  
     - Add *Hardware-tested by <the person who tested it>.* only once a person has actually tested that PR on the hardware.  

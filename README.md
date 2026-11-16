@@ -7,9 +7,9 @@ leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 
 ## How this project is built
 
-Contributors are encouraged to use AI coding agents (Claude Code, or any
-other) to write code and docs. Every agent follows the same rules, set out in
-[AGENTS.md](AGENTS.md). For transparency, every commit and pull request names
+Contributors are encouraged to use AI coding agents (any of them: Claude
+Code, Copilot, Cursor, Codex, Aider and so on) to write code and docs. Every
+agent follows the same rules, set out in [AGENTS.md](AGENTS.md). For transparency, every commit and pull request names
 the AI tool and model that helped write it, so the history shows which agents
 built the project.
 
@@ -70,8 +70,12 @@ person still tests every change on a real board before merging.
    are needed.
 2. In the `loft/` folder, copy `loft_settings.example.h` to `loft_settings.h`.
 3. Edit `loft_settings.h` with your loft's name, location, time zone, Wi-Fi
-   and number of doors, then delete its `#error` line. This file is
-   git-ignored, so your details stay on your computer.
+   and number of doors. This file is git-ignored, so your details stay on
+   your computer.
+   - Near the top is a line starting with `#error`. It's a safety stop: it
+     makes the build fail with "Fill in your loft's details..." so you can't
+     upload the placeholder settings by mistake. Once your details are in,
+     delete that whole line, then save.
 4. Wire the relay module as listed in AGENTS.md (doors on D2, D3, ...), open
    `loft/loft.ino`, select **Arduino UNO R4 WiFi**, and upload.
 5. Open the Serial Monitor at 115200 baud and type `status` to check the time
