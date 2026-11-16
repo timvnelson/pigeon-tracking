@@ -14,15 +14,21 @@ Both systems are powered by battery backup units so they never fail during a pow
 Only the project owner adds facts here, after checking the real hardware. If another section disagrees with this one, this one is correct and the other section should be fixed.  
 
 ### Entrance doors: Ripom D3786 solar roll-up coop door (Amazon ASIN B0H41MYJFB)  
-- **Self-contained unit.** Each door has its own motor, controller, LCD, light sensor, timer and internal battery. The Arduino does **not** drive the door motors.  
-- **Power:** a built-in 2500 mAh battery, normally charged by an included 7 W solar panel. In this project the 5 V UPS supply, switched through the relay module, **only charges each door's internal battery**. It does not power the motor directly, so the doors do not draw their motor current from the UPS.  
-- **Built-in control modes:** Light Sensitive (opens at dawn, closes at dusk), Timer (open/close times set on the LCD), an RF remote (about 165 ft range), and manual push-buttons on the unit.  
-- **Anti-pinch:** if the door meets resistance while closing, it retracts for 10 s and then tries again. Firmware must not treat a door that is still open shortly after a close command as a fault until that retry window has passed.  
+- **Self-contained unit.** Each door has its own motor, controller, LCD and internal 2500 mAh battery. The Arduino does **not** drive the door motors.  
+- **Charging input:** 4.2-5.0 V DC at 1 A (from the door's manual). It was originally fed 5 V by the included solar panel. Rats kept chewing the panel cable, so the panels are being replaced by wired DC from the UPS.  
+- **The power input is also the open/close signal.** In Light Sensitive mode the door uses that input as its light sensor: **power present = day = door opens; power removed = night = door closes.** So one relay per door does both jobs:  
+    - **Relay ON:** the door charges and opens (daytime).  
+    - **Relay OFF:** the door runs on its battery and closes (night).  
+    - Each door must stay in **Light Sensitive mode** on its LCD, or this control method will not work.  
+    - The Arduino replaces the sun: it switches each door's relay at sunrise and sunset, which it calculates offline.  
+- **Power budget:** up to 1 A per door. All 5 doors powered during the day can draw up to 5 A, which is the UPS's whole 5 V 5 A rating before counting the Arduino and relay coils. Turn the doors on one at a time a few seconds apart rather than all at once. If the voltage sags, consider a separate supply for the doors.  
+- **Boot and reset safety:** the ELEGOO relay inputs are active-LOW. Firmware must drive each relay pin HIGH (relay off) *before* setting it as OUTPUT. Otherwise a reset or power blip at night can briefly power the doors and make them start opening.  
+- **Other built-in controls:** an RF remote (about 165 ft range) and manual push-buttons on the unit still work as manual overrides.  
+- **Anti-pinch:** if the door meets resistance while closing, it retracts for 10 s and then tries again. Firmware must not treat a door that is still open shortly after power is removed as a fault until that retry window has passed.  
 - **Opening:** 9.5" x 10". Operating range: -15°F to 140°F.  
 - **Still unknown (do not guess, ask the owner):**  
-    - The voltage and current the charging input expects. The listing says "12V battery", which conflicts with a 2500 mAh pack on a 7 W panel, so measure or read the label.  
-    - Whether the Arduino will command the doors at all, and if so how (relay contacts across the push-buttons, an RF transmitter copying the remote, or no control and the doors' own light/timer mode).  
-    - Whether one remote operates all five doors or each door separately.  
+    - How long after power is removed (or restored) the door actually moves. The door may wait some time so that a passing cloud doesn't trigger it.  
+    - How much current each door actually draws when its battery is full compared with when it is charging.  
   
   
 ## 1. Project Overview & Workflow  
@@ -35,14 +41,14 @@ Only the project owner adds facts here, after checking the real hardware. If ano
   
 ## 2. Bird Loft Arduino Project  
 - **Microcontroller:** Arduino UNO R4 WiFi (32-bit Renesas RA4M1 + ESP32-S3 coprocessor, 5V GPIO logic, built-in RTC with VRTC coin-cell backup pin, USB-C, Qwiic/STEMMA QT connector).  
-- **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). An 8-channel 5V relay module switches the UPS 5V supply that charges each door's internal battery. How the Arduino commands open/close is still TBD (Section 0). If the Arduino schedules the doors itself, use offline astronomical sunset calculations (==SolarCalculator== / ==Dusk2Dawn== libraries).  
+- **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). One channel of the 8-channel 5V relay module per door switches the UPS 5V supply to that door's power input. Power on opens the door and charges it; power off closes it. The Arduino turns the relays on at sunrise and off at sunset using offline astronomical calculations (==SolarCalculator== / ==Dusk2Dawn== libraries).  
 - **RFID Tracking:** Multiple RC522 RFID readers (13.56 MHz, SPI communication, 3.3V VCC, 2-5 cm range) arranged in an array across a 3D-printed waterproof strip. Uses individual Slave Select (SS) pins to identify exact door/sensor positions.  
 - **Feeder Control:** Stepper motors controlled via driver modules (e.g., A4988/DRV8825) to regulate feeding access.  
 - **Water Leak Sensors:** Integrated to detect overflow.  
 - **Power System:**  
     - UPS Module 3S (3x 18650 batteries, 12.6V 2A input charger). Shared with the Release Cage Arduino.  
     - Outputs 5V 5A continuous via the main Type-C/XH2.54 port.  
-    - Wiring: 18 AWG stranded pure copper wire. Ground runs to a distribution block; Positive runs to a distribution block, then through relay COM/NO terminals out to each door's battery-charging input.  
+    - Wiring: 18 AWG stranded pure copper wire. Ground runs to a distribution block; Positive runs to a distribution block, then through relay COM/NO terminals out to each door's power input (4.2-5.0 V, 1 A).  
 - **Connectivity & Home Server:** MQTT protocol over Wi-Fi (or future Ethernet shield like W5500) back to a home server (Home Assistant / Node-RED with Mosquitto broker).  
 
 ---
