@@ -61,7 +61,7 @@ Sunrise and sunset use 34.00 N, 118.00 W, Pacific time with US daylight saving. 
     - UPS Module 3S (3x 18650 batteries, 12.6V 2A input charger). Shared with the Release Cage Arduino.  
     - Outputs 5V 5A continuous via the main Type-C/XH2.54 port.  
     - Wiring: 18 AWG stranded pure copper wire. Ground runs to a distribution block; Positive runs to a distribution block, then through relay COM/NO terminals out to each door's power input (4.2-5.0 V, 1 A).  
-- **Connectivity & Home Server:** MQTT protocol over Wi-Fi (or future Ethernet shield like W5500) back to a home server (Home Assistant / Node-RED with Mosquitto broker).  
+- **Connectivity & Home Server:** MQTT protocol over Wi-Fi (or future Ethernet shield like W5500) back to the home server (Home Assistant with the Mosquitto MQTT broker; see Section 4).  
 
 ---
   
@@ -87,6 +87,9 @@ Update this section on every feature branch so that once merged it describes wha
 - `TimeKeeper.*`: UTC clock in the R4's built-in RTC, synced from NTP over Wi-Fi at boot, then every 6 h (or every 5 min after a failed attempt).  
 - `secrets.example.h`: copy it to `secrets.h` (git-ignored) and fill in the Wi-Fi details.  
 
+**Wi-Fi today:** the board connects at boot to fetch the time and stays connected. A dropped connection is only noticed at the next time sync (up to 6 h). That's fine for the doors, which run from the RTC and never need Wi-Fi.  
+**Before the MQTT feature (planned `feat/loft-mqtt`):** add a Wi-Fi watchdog that checks the connection every ~10 s and reconnects with back-off without stalling the loop (`WiFi.begin()` blocks for ~10 s, long enough to miss an RFID read). Use `ArduinoMqttClient` with a keep-alive and Last Will so Home Assistant notices when the loft goes offline, and queue events while offline.  
+
 **Rules the code follows:**  
 - All scheduling happens in UTC, so daylight saving cannot break it. Local time is used only for printing.  
 - If the clock has never been set, the doors stay **closed**.  
@@ -96,7 +99,11 @@ Update this section on every feature branch so that once merged it describes wha
 ---
 
 ## 4. Home Server  
-- **Dashboard & Broker:** Runs Home Assistant or Node-RED with a Mosquitto MQTT broker.  
+- **Platform (decided): Home Assistant**, chosen because it integrates with a wide range of other systems and devices. The loft and cage data can sit alongside other smart-home equipment, cameras and notifications, and automations can link them.  
+- **Broker:** the Mosquitto MQTT broker, run as a Home Assistant add-on.  
+- **Device setup: MQTT Discovery.** The Arduinos publish Home Assistant discovery messages so their doors and sensors appear as entities automatically, with no manual YAML.  
+- **Hosting:** Home Assistant should run on its own dedicated machine, booting from an SSD rather than an SD card, because its database writes wear SD cards out.  
+- **Optional later:** Node-RED, as a Home Assistant add-on, if visual flow-based automations are wanted.  
 - **Data Storage:** Centralizes and stores all sensor telemetry, bird tracking logs, and system states from both the Loft and Release Cage Arduinos.  
   
   
