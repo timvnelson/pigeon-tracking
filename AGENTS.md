@@ -60,6 +60,10 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 - A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
 - Only the owner can verify that the code works, by testing it on the real hardware. Push the branch, open a pull request, then **wait** for the owner to test and merge. Don't merge unless the owner explicitly asks you to.  
 - Every merge into `main` must carry a description saying what the system now does. Keep the PR title and description up to date as the branch grows, so they can serve as the merge description.  
+- **Attribution (owner's rule):** credit the AI honestly, without implying no human was involved.  
+    - Commits: the human owner is the author, and the AI is credited with a `Co-Authored-By:` line.  
+    - PR descriptions end with: *Code written with <AI tool>; reviewed and merged by the project owner.*  
+    - Add *Hardware-tested by the project owner.* only once the owner has actually tested that PR on the hardware.  
 - Merged branches are deleted automatically; start new work from the latest `main`.  
 
 **Keeping this file current**  

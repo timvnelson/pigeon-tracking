@@ -5,6 +5,14 @@ close after sunset, and more features are planned: RFID bird tracking, feeders,
 leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 [AGENTS.md](AGENTS.md) for the full design and the hardware it uses.
 
+## How this project is built
+
+The project owner, a pigeon keeper, designs the system and decides what gets
+built. The owner also tests every change on the real hardware in the loft
+before merging it. The code and docs are written with
+[Claude Code](https://claude.com/claude-code), an AI coding assistant, under
+the owner's direction. That's why commits list Claude as a co-author.
+
 ## Setting up your own loft
 
 1. Install the [Arduino IDE](https://www.arduino.cc/en/software) and, in the
