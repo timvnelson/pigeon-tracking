@@ -1,0 +1,46 @@
+# Compile check: builds the loft firmware for the Arduino UNO R4 WiFi on every
+# push and pull request, using the same arduino-cli command contributors run
+# locally. It builds from the public template (loft_settings.example.h), not
+# anyone's private settings, so it proves the code works for a new owner.
+#
+# It only checks that the code builds. It cannot test the hardware; a person
+# still tests every change on a real board before merging (see AGENTS.md).
+name: Compile check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        settings: [with-wifi, without-wifi]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Install the Arduino UNO R4 board package
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:renesas_uno
+
+      - name: Make settings from the public template
+        run: |
+          # Remove the template's deliberate #error line, as a new owner would.
+          sed '/^#error/d' loft/loft_settings.example.h > loft/loft_settings.h
+          if [ "${{ matrix.settings }}" = "without-wifi" ]; then
+            sed -i 's|^#define LOFT_WIFI_|// #define LOFT_WIFI_|' loft/loft_settings.h
+          fi
+
+      - name: Compile (warnings fail the check)
+        run: |
+          arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft 2>&1 | tee build.log
+          # Fail on any warning in our own code (not in the board package).
+          if grep -E "^[^ ]*loft/[^:]+:[0-9]+:[0-9]+: warning:" build.log; then
+            echo "::error::Compiler warnings in loft/ code; fix them."
+            exit 1
+          fi
