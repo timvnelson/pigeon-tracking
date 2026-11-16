@@ -1,7 +1,5 @@
 # Per-loft private settings (location, owner, Wi-Fi passwords)
 loft_settings.h
-# Old Wi-Fi-only settings file (replaced by loft_settings.h)
-secrets.h
 
 # Build output
 build/
