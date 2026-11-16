@@ -50,11 +50,36 @@ This project is meant to be reused: anyone can buy the suggested hardware and in
 - Docs, code comments and commit messages describe the hardware generically and never name an owner's location or personal systems.  
   
   
-## 1. Project Overview & Workflow  
-- **Collaboration Model:** GitHub repository acts as the central memory bank.  
-- **Key Files:** ==SYSTEM_PROMPT.md== (hardware specs, pin mappings, core logic) and ==ARCHITECTURE.md== (modular code map).  
-- **Branching Strategy:** Use feature branches (e.g., ==feat/new-feature==) for AI exploration/sandboxing before merging into ==main==.  
-- **Language:** C/C++ (via Arduino framework) for maximum execution speed, bare-metal efficiency, and optimal battery life (race-to-sleep).  
+## 1. How to work on this project (for AI agents and humans)  
+Any AI agent working on this repo should follow these rules, so every owner's agent behaves the same way.  
+
+**This file is the project's memory.** It lives in the repo so every agent and every person gets the same picture. Read it fully before doing anything. Section 0 (Confirmed Hardware Facts) overrides everything else; if the code or another section disagrees with it, fix them to match. Never guess about hardware: if something is listed as unknown, ask the owner.  
+
+**Branches and merging**  
+- Never commit directly to `main`, not even docs. All work goes on a branch, and `main` changes only when the owner merges a pull request.  
+- A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
+- Only the owner can verify that the code works, by testing it on the real hardware. Push the branch, open a pull request, then **wait** for the owner to test and merge. Don't merge unless the owner explicitly asks you to.  
+- Every merge into `main` must carry a description saying what the system now does. Keep the PR title and description up to date as the branch grows, so they can serve as the merge description.  
+- Merged branches are deleted automatically; start new work from the latest `main`.  
+
+**Keeping this file current**  
+- Update this file **on the same branch** as the change it describes, so it reaches `main` with the merge and always describes what `main` does.  
+- After a merge, pull `main`. If anything changed during testing and this file no longer matches, fix it on the next branch.  
+
+**Before pushing code**  
+- Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed). Fix all warnings.  
+- Compiling proves only that it builds. Describe what still needs testing on the hardware.  
+
+**Privacy and reuse**  
+- Follow the Per-loft data rule (Section 0). Never commit location, owner names, passwords or anything else unique to one loft. Never print or commit `loft_settings.h`.  
+- Don't mention an owner's personal systems (home network, smart-home or camera brands) in the repo. Describe integrations generically.  
+- When an owner shares a product link, strip tracking and account parameters and keep only `amazon.com/dp/<code>`.  
+
+**Docs**  
+- `docs/` is the public setup guide. Add to it slowly, with only what the owner finds useful, and keep `docs/README.md` current.  
+- Write for a hobbyist building their own loft: plain language, short, with real values and expected outputs.  
+
+**Language:** C/C++ (Arduino framework) for speed, bare-metal efficiency and battery life (race-to-sleep).  
 
 ---
   
