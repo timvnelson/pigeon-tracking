@@ -30,7 +30,7 @@ Only the project owner adds facts here, after checking the real hardware. If ano
 - **Still unknown (do not guess, ask the owner):**  
     - How much current each door actually draws when its battery is full compared with when it is charging.  
 
-### Pin assignments (owner confirmed)  
+### Pin assignments (project standard wiring; D2-D6 confirmed by owner)  
 | Arduino pin | Connects to | Purpose |  
 |---|---|---|  
 | D2 | Relay IN1 | Door 1 power |  
@@ -38,9 +38,14 @@ Only the project owner adds facts here, after checking the real hardware. If ano
 | D4 | Relay IN3 | Door 3 power |  
 | D5 | Relay IN4 | Door 4 power |  
 | D6 | Relay IN5 | Door 5 power |  
+| D7-D9 | Relay IN6-IN8 | Doors 6-8, used only if a loft sets `LOFT_NUM_DOORS` above 5 |  
 
-### Location  
-Sunrise and sunset use 34.00 N, 118.00 W, Pacific time with US daylight saving. The coordinates are rounded on purpose because this repo is public. Never commit the owner's exact address, ZIP code or precise coordinates.  
+### Per-loft data rule (owner's rule; always applies)  
+This project is meant to be reused: anyone can buy the suggested hardware and install it in their own loft. So **nothing unique to one loft is ever committed**. That covers location, owner name, Wi-Fi details, passwords and server addresses, and any other value that differs between installations.  
+- All such values live in `loft/loft_settings.h`, which git ignores. Each installer makes theirs by copying `loft/loft_settings.example.h`.  
+- The committed code holds only project defaults (pins, timings). It reads per-loft values through `config.h`, which stops the build with a clear message if the settings file is missing or wasn't edited.  
+- New per-loft values (e.g. the MQTT broker address and login) go in `loft_settings.example.h` as placeholders, never real values. If a value is optional, `config.h` gives it a default.  
+- Docs, code comments and commit messages describe the hardware generically and never name an owner's location or personal systems.  
   
   
 ## 1. Project Overview & Workflow  
@@ -53,7 +58,7 @@ Sunrise and sunset use 34.00 N, 118.00 W, Pacific time with US daylight saving. 
   
 ## 2. Bird Loft Arduino Project  
 - **Microcontroller:** Arduino UNO R4 WiFi (32-bit Renesas RA4M1 + ESP32-S3 coprocessor, 5V GPIO logic, built-in RTC with VRTC coin-cell backup pin, USB-C, Qwiic/STEMMA QT connector).  
-- **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). One channel of the 8-channel 5V relay module per door switches the UPS 5V supply to that door's power input. Power on opens the door and charges it; power off closes it. The Arduino turns the relays on at sunrise and off at sunset using offline astronomical calculations (==SolarCalculator== / ==Dusk2Dawn== libraries).  
+- **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). One channel of the 8-channel 5V relay module per door switches the UPS 5V supply to that door's power input. Power on opens the door and charges it; power off closes it. The Arduino turns the relays on at sunrise and off at sunset using offline astronomical calculations (our own NOAA implementation in `loft/SolarSchedule.cpp`; no libraries).  
 - **RFID Tracking:** Multiple RC522 RFID readers (13.56 MHz, SPI communication, 3.3V VCC, 2-5 cm range) arranged in an array across a 3D-printed waterproof strip. Uses individual Slave Select (SS) pins to identify exact door/sensor positions.  
 - **Feeder Control:** Stepper motors controlled via driver modules (e.g., A4988/DRV8825) to regulate feeding access.  
 - **Water Leak Sensors:** Integrated to detect overflow.  
@@ -79,13 +84,13 @@ Sunrise and sunset use 34.00 N, 118.00 W, Pacific time with US daylight saving. 
 Update this section on every feature branch so that once merged it describes what `main` does.  
 
 ### Loft (`loft/`, Arduino UNO R4 WiFi)  
-**Door schedule.** At sunrise the relays power the doors, which open. At 30 minutes after sunset they cut the power, and the doors close.  
-- `loft.ino`: the main loop, the USB serial test commands and the status printout.  
-- `config.h`: every setting (location, pins, open/close offsets, stagger delay, NTP intervals).  
+**Door schedule.** At sunrise the relays power the doors, which open. At 30 minutes after sunset (configurable per loft) they cut the power, and the doors close.  
+- `loft.ino`: the main loop, the USB serial test commands, the status printout and the local-time display (US or EU daylight-saving rules, or none).  
+- `loft_settings.example.h`: template for the per-loft settings file (see "Per-loft data rule"). Covers the loft name, owner, location, time zone, Wi-Fi, door count (1-8) and optional open/close offsets.  
+- `config.h`: loads `loft_settings.h`, checks it, applies defaults, and holds the project-wide settings (pins, stagger delay, NTP intervals).  
 - `SolarSchedule.*`: offline NOAA sunrise/sunset maths (no libraries) and the stateless "should the doors be open now?" check. It works out the right state from scratch after any reboot.  
 - `DoorController.*`: relay switching. Pins are set to OFF first at boot. Doors open one at a time, 5 s apart; they close all at once.  
 - `TimeKeeper.*`: UTC clock in the R4's built-in RTC, synced from NTP over Wi-Fi at boot, then every 6 h (or every 5 min after a failed attempt).  
-- `secrets.example.h`: copy it to `secrets.h` (git-ignored) and fill in the Wi-Fi details.  
 
 **Wi-Fi today:** the board connects at boot to fetch the time and stays connected. A dropped connection is only noticed at the next time sync (up to 6 h). That's fine for the doors, which run from the RTC and never need Wi-Fi.  
 **Before the MQTT feature (planned `feat/loft-mqtt`):** add a Wi-Fi watchdog that checks the connection every ~10 s and reconnects with back-off without stalling the loop (`WiFi.begin()` blocks for ~10 s, long enough to miss an RFID read). Use `ArduinoMqttClient` with a keep-alive and Last Will so Home Assistant notices when the loft goes offline, and queue events while offline.  

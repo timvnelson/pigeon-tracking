@@ -5,7 +5,7 @@
 //   input is live and close when it is removed. This sketch switches that
 //   power through one relay per door: ON from sunrise (+OPEN_OFFSET_MIN) to
 //   sunset (+CLOSE_OFFSET_MIN), OFF otherwise. Sunrise and sunset are
-//   calculated offline from the date and the location in config.h.
+//   calculated offline from the date and the location in loft_settings.h.
 //
 // Safety rule: if the clock has not been set, the doors stay CLOSED.
 //
@@ -15,7 +15,7 @@
 //   auto            cancel the override and follow the schedule
 //   settime <epoch> set the clock by hand (UTC Unix seconds, e.g. from
 //                   https://www.unixtimestamp.com)
-//   sync            fetch the time from the internet now (needs secrets.h)
+//   sync            fetch the time from the internet now (needs Wi-Fi in loft_settings.h)
 //   help            list commands
 
 #include "config.h"
@@ -33,6 +33,12 @@ static uint32_t s_lastEvalMs = 0;
 
 // ---------------------------------------------------------------- time display
 
+static int32_t lastSundayOf(int32_t year, uint32_t month) {
+  const int32_t last = (month == 12 ? Solar::daysFromCivil(year + 1, 1, 1)
+                                    : Solar::daysFromCivil(year, month + 1, 1)) - 1;
+  return last - ((last + 4) % 7);  // 1970-01-01 was a Thursday
+}
+
 static uint32_t usDstStartUtc(int32_t year) {  // 2nd Sunday in March, 02:00 standard time
   const int32_t d = Solar::daysFromCivil(year, 3, 1);
   const int32_t firstSun = d + (7 - ((d + 4) % 7)) % 7;  // 1970-01-01 was a Thursday
@@ -47,10 +53,13 @@ static uint32_t usDstEndUtc(int32_t year) {    // 1st Sunday in November, 02:00 
 
 static int32_t localOffsetSeconds(uint32_t utc, bool &isDst) {
   isDst = false;
-  if (TZ_USE_US_DST) {
-    int32_t y; uint32_t m, d;
-    Solar::civilFromDays((int32_t)(utc / 86400UL), y, m, d);
+  int32_t y; uint32_t m, d;
+  Solar::civilFromDays((int32_t)(utc / 86400UL), y, m, d);
+  if (DST_RULE == DST_RULE_US) {
     isDst = utc >= usDstStartUtc(y) && utc < usDstEndUtc(y);
+  } else if (DST_RULE == DST_RULE_EU) {  // both changes at 01:00 UTC
+    isDst = utc >= (uint32_t)lastSundayOf(y, 3) * 86400UL + 3600UL &&
+            utc <  (uint32_t)lastSundayOf(y, 10) * 86400UL + 3600UL;
   }
   return (TZ_STANDARD_OFFSET_MIN + (isDst ? 60 : 0)) * 60L;
 }
@@ -103,7 +112,7 @@ static void evaluate() {
 // ---------------------------------------------------------------- serial commands
 
 static void printStatus() {
-  Serial.println(F("---- loft status ----"));
+  Serial.print(F("---- ")); Serial.print(F(LOFT_NAME)); Serial.println(F(" status ----"));
   if (TimeKeeper::isValid()) {
     const uint32_t now = TimeKeeper::nowUtc();
     Serial.print(F("Time:        ")); printLocalTime(now);
@@ -119,7 +128,7 @@ static void printStatus() {
     Serial.println(F("Time:        NOT SET -> doors held CLOSED"));
     Serial.println(TimeKeeper::hasWifiCredentials()
                        ? F("             waiting for Wi-Fi/NTP; or use: settime <epoch>")
-                       : F("             no secrets.h; use: settime <epoch>"));
+                       : F("             no Wi-Fi in loft_settings.h; use: settime <epoch>"));
   }
   Serial.print(F("Override:    "));
   Serial.println(s_override == Override::Open ? F("OPEN") : s_override == Override::Close ? F("CLOSE") : F("none"));
@@ -153,7 +162,7 @@ static void handleCommand(String cmd) {
       Serial.println(F("[cmd] rejected: expected a UTC Unix time after 2026-01-01"));
     }
   } else if (cmd == "sync") {
-    if (!TimeKeeper::hasWifiCredentials()) Serial.println(F("[cmd] no secrets.h, so no Wi-Fi"));
+    if (!TimeKeeper::hasWifiCredentials()) Serial.println(F("[cmd] no Wi-Fi configured in loft_settings.h"));
     else TimeKeeper::syncNow();
   } else {
     Serial.println(F("Commands: status | open | close | auto | settime <epoch> | sync"));
@@ -181,9 +190,11 @@ void setup() {
   Serial.begin(115200);
   const uint32_t t0 = millis();
   while (!Serial && millis() - t0 < 2000) {}  // brief wait for USB; don't block without it
-  Serial.println(F("\n[boot] Bird Loft controller: door schedule"));
+  Serial.print(F("\n[boot] Bird Loft controller: ")); Serial.print(F(LOFT_NAME));
+  if (LOFT_OWNER[0]) { Serial.print(F(" (")); Serial.print(F(LOFT_OWNER)); Serial.print(')'); }
+  Serial.println();
   TimeKeeper::begin();
-  TimeKeeper::update();  // first NTP attempt (if secrets.h exists)
+  TimeKeeper::update();  // first NTP attempt (if Wi-Fi is configured)
   evaluate();
   printStatus();
 }
