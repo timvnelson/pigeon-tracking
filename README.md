@@ -9,7 +9,9 @@ leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 
 Contributors are encouraged to use AI coding agents (Claude Code, or any
 other) to write code and docs. Every agent follows the same rules, set out in
-[AGENTS.md](AGENTS.md), and commits credit the agent as a co-author.
+[AGENTS.md](AGENTS.md). For transparency, every commit and pull request names
+the AI tool and model that helped write it, so the history shows which agents
+built the project.
 
 **A human is always in charge of the results:**
 - People decide what gets built.

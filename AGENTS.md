@@ -62,8 +62,9 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 - Every merge into `main` must carry a description saying what the system now does. Keep the PR title and description up to date as the branch grows, so they can serve as the merge description.  
 - **AI agents are welcome; humans verify.** Contributors may use any AI agent. But every change to hardware behaviour or data collection (door control, RFID tracking, sensor readings, battery status, anything reported to Home Assistant) must be tested by a person on real hardware before it's merged. Collected data must also be checked by a person against what really happened. Never claim something works on hardware just because it compiles; say what a person still needs to test.  
 - **Attribution (owner's rule):** credit the AI honestly, without implying no human was involved.  
-    - Commits: the human contributor is the author, and the AI is credited with a `Co-Authored-By:` line naming the actual tool used.  
-    - PR descriptions end with: *Code written with <AI tool>; reviewed and merged by the project owner.*  
+    - **Always name the specific AI tool and model, for transparency** (e.g. "Claude Code, Claude Opus 5.5"). Never leave it out or make it vague: the project wants an honest record of which AI agents built it.  
+    - Commits: the human contributor is the author, and the AI is credited with a `Co-Authored-By:` line naming that tool or model.  
+    - PR descriptions end with: *Code written with <AI tool and model>; reviewed and merged by the project owner.* If no AI was used, say so.  
     - Add *Hardware-tested by <the person who tested it>.* only once a person has actually tested that PR on the hardware.  
 - Merged branches are deleted automatically; start new work from the latest `main`.  
 
