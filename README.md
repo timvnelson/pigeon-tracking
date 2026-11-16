@@ -13,6 +13,10 @@ other) to write code and docs. Every agent follows the same rules, set out in
 the AI tool and model that helped write it, so the history shows which agents
 built the project.
 
+**One person per branch.** Each branch belongs to one person (and their AI
+agent, if they use one), shown as the assignee on its pull request. To
+contribute to someone else's work, talk to them or open your own branch.
+
 **A human is always in charge of the results:**
 - People decide what gets built.
 - A person tests every change on real hardware before it's merged.

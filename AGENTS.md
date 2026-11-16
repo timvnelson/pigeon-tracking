@@ -60,6 +60,10 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 **Branches and merging**  
 - Never commit directly to `main`, not even docs. All work goes on a branch, and `main` changes only when the owner merges a pull request.  
 - A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
+- **One person per branch.** Each branch belongs to one person, who works on it with their own AI agent if they use one. Only that person, or their agent, pushes to it. This keeps things simple: whatever that person or their agent knows but hasn't committed yet can't clash with someone else's changes.  
+    - The branch's person is the **assignee** on its pull request. Set yourself as assignee when you open a PR for your branch.  
+    - To change someone else's branch, tell that person, or make your own branch and open a PR. Never push to another person's branch, not even small fixes or merges of `main`; the branch's person brings `main` in when they're ready.  
+    - Push often, and keep the PR description current, so others can see where your branch stands without needing your private notes.  
 - Only the owner can verify that the code works, by testing it on the real hardware. Push the branch, open a pull request, then **wait** for the owner to test and merge. Don't merge unless the owner explicitly asks you to.  
 - Every merge into `main` must carry a description saying what the system now does. Keep the PR title and description up to date as the branch grows, so they can serve as the merge description.  
 - **AI agents are welcome; humans verify.** Contributors may use any AI agent. But every change to hardware behaviour or data collection (door control, RFID tracking, sensor readings, battery status, anything reported to Home Assistant) must be tested by a person on real hardware before it's merged. Collected data must also be checked by a person against what really happened. Never claim something works on hardware just because it compiles; say what a person still needs to test.  
@@ -103,6 +107,12 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
     - **Power:** in the loft, the board runs from the 5 V distribution block through a USB-C male-to-pigtail cable. Its barrel jack and VIN pin need 6-24 V, so they can't run from the UPS's 5 V.  
 - **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). One channel of the 8-channel 5V relay module per door switches the UPS 5V supply to that door's power input. Power on opens the door and charges it; power off closes it. The Arduino turns the relays on at sunrise and off at sunset using offline astronomical calculations (our own NOAA implementation in `loft/SolarSchedule.cpp`; no libraries).  
 - **RFID Tracking:** Multiple RC522 RFID readers (13.56 MHz, SPI communication, 3.3V VCC, 2-5 cm range) arranged in an array across a 3D-printed waterproof strip. Uses individual Slave Select (SS) pins to identify exact door/sensor positions.  
+    - **Electrical notes (not yet confirmed on hardware; move to Section 0 once the RFID tester has checked them):**  
+        - **Power:** the RC522 runs on 3.3 V. The UNO R4's 3.3 V pin can power one or two readers for bench testing. A full array of readers transmitting may draw more than that pin is meant to supply, so plan a separate 3.3 V regulator for the loft array and check the R4 datasheet for the pin's current limit.  
+        - **Signals need a level shifter.** The R4's 3.3 V pin is only a power output: the R4 still drives its signal pins at 5 V and has no 3.3 V logic mode. The RC522's chip is rated for 3.3 V signals, so 5 V on SCK, MOSI, SS/SDA and RST is out of spec. It often seems to work, but it can damage the reader over time or make it unreliable.  
+        - In the other direction, the reader's 3.3 V MISO output may be close to the lowest voltage a 5 V R4 reliably reads as high.  
+        - Use a two-way level shifter (BSS138- or TXS0108E-based "3.3 V / 5 V logic level converter") on all the SPI lines, one channel per signal.  
+        - **Alternative to evaluate:** some other 13.56 MHz reader boards (e.g. many PN532 breakouts) accept 5 V logic directly, so they'd need no level shifter.  
 - **Feeder Control:** Stepper motors controlled via driver modules (e.g., A4988/DRV8825) to regulate feeding access.  
 - **Water Leak Sensors:** Integrated to detect overflow.  
 - **Power System:**  
