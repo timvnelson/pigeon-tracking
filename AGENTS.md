@@ -55,6 +55,8 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 
 **This file is the project's memory.** It lives in the repo so every agent and every person gets the same picture. Read it fully before doing anything. Section 0 (Confirmed Hardware Facts) overrides everything else; if the code or another section disagrees with it, fix them to match. Never guess about hardware: if something is listed as unknown, ask the owner.  
 
+**Keep project knowledge in the project.** When you learn or decide something about this project, write it in this file or in `docs/`. That covers a hardware fact, a design decision, a convention or a lesson from testing. Then every contributor's agent works from the same information and behaves the same way. How you set up your own tools stays your business.  
+
 **Branches and merging**  
 - Never commit directly to `main`, not even docs. All work goes on a branch, and `main` changes only when the owner merges a pull request.  
 - A branch covers whatever the owner calls the current topic. That can be one feature (`feat/loft-mqtt`) or broad (a refinement pass across the project). Don't split or merge branches unless the owner asks.  
@@ -73,8 +75,15 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 - After a merge, pull `main`. If anything changed during testing and this file no longer matches, fix it on the next branch.  
 
 **Before pushing code**  
-- Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed). Fix all warnings.  
+- Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed: `arduino-cli core install arduino:renesas_uno`). Fix all warnings.  
 - Compiling proves only that it builds. Describe what still needs testing on the hardware.  
+- **GitHub compile check** (`.github/workflows/compile.yml`): every change to a PR, and every merge into `main`, is compiled on GitHub from the public `loft_settings.example.h`, both with and without Wi-Fi, and any error or warning in `loft/` fails it. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
+
+**Working with a board on USB** (only if your agent runs on the computer the Arduino is plugged into)  
+- Find the port: `arduino-cli board list` (usually `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem…` on macOS, `COMx` on Windows).  
+- Upload: `arduino-cli upload -p <port> --fqbn arduino:renesas_uno:unor4wifi loft`. **Tell the owner before uploading if real doors are connected**: an upload resets the board. Boot safety keeps the doors closed during a reset, but the owner should know.  
+- Serial: `arduino-cli monitor -p <port> --config 115200`. The monitor runs until stopped, so run it with a timeout or in the background, and capture its output.  
+- Serial output shows what the firmware *reports*, not what the hardware *does*. The owner confirms physical behaviour (relays clicking, LEDs, doors) before anything counts as working.  
 
 **Privacy and reuse**  
 - Follow the Per-loft data rule (Section 0). Never commit location, owner names, passwords or anything else unique to one loft. Never print or commit `loft_settings.h`.  

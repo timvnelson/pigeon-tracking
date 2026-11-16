@@ -22,6 +22,43 @@ built the project.
 
 AI writes the code; humans verify that it works in the loft.
 
+### Working with an AI coding agent
+
+The most useful kind of agent here is a **command-line (terminal) coding
+agent running on the computer the Arduino is plugged into**. With the free
+[Arduino CLI](https://arduino.github.io/arduino-cli/) installed, the agent can:
+
+- compile the firmware for the UNO R4 WiFi
+- upload it to the board over USB
+- read the board's serial messages and type test commands such as `status`
+
+This makes testing much faster. But the agent only knows what the board
+*reports*; you still watch what the hardware actually *does* (LEDs, relays,
+doors). A chatbot in a web browser can suggest code, but it can't compile it
+or reach your board.
+
+To set up, install the Arduino CLI, then the board package:
+
+```
+arduino-cli core install arduino:renesas_uno
+```
+
+Most agents read [AGENTS.md](AGENTS.md) automatically; if yours doesn't, ask
+it to read that file first.
+
+### Automatic compile check
+
+Every change to a pull request, and every merge into `main`, is compiled on
+GitHub automatically, and the pull request shows a ✓ or ✗. The check:
+
+- builds from the public settings template, so the code is known to work for
+  a new owner, not just on one person's computer
+- builds both with and without Wi-Fi
+- fails on any error or compiler warning
+
+It's a sanity check that the code *builds*. It can't test the hardware, so a
+person still tests every change on a real board before merging.
+
 ## Setting up your own loft
 
 1. Install the [Arduino IDE](https://www.arduino.cc/en/software) and, in the
