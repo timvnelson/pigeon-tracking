@@ -26,9 +26,21 @@ Only the project owner adds facts here, after checking the real hardware. If ano
 - **Other built-in controls:** an RF remote (about 165 ft range) and manual push-buttons on the unit still work as manual overrides.  
 - **Anti-pinch:** if the door meets resistance while closing, it retracts for 10 s and then tries again. Firmware must not treat a door that is still open shortly after power is removed as a fault until that retry window has passed.  
 - **Opening:** 9.5" x 10". Operating range: -15°F to 140°F.  
+- **Response time:** the door starts moving a couple of seconds after its power is switched on or off (owner confirmed).  
 - **Still unknown (do not guess, ask the owner):**  
-    - How long after power is removed (or restored) the door actually moves. The door may wait some time so that a passing cloud doesn't trigger it.  
     - How much current each door actually draws when its battery is full compared with when it is charging.  
+
+### Pin assignments (owner confirmed)  
+| Arduino pin | Connects to | Purpose |  
+|---|---|---|  
+| D2 | Relay IN1 | Door 1 power |  
+| D3 | Relay IN2 | Door 2 power |  
+| D4 | Relay IN3 | Door 3 power |  
+| D5 | Relay IN4 | Door 4 power |  
+| D6 | Relay IN5 | Door 5 power |  
+
+### Location  
+Sunrise and sunset use 34.00 N, 118.00 W, Pacific time with US daylight saving. The coordinates are rounded on purpose because this repo is public. Never commit the owner's exact address, ZIP code or precise coordinates.  
   
   
 ## 1. Project Overview & Workflow  
@@ -63,6 +75,26 @@ Only the project owner adds facts here, after checking the real hardware. If ano
 
 ---
   
+## Firmware: what the code does today  
+Update this section on every feature branch so that once merged it describes what `main` does.  
+
+### Loft (`loft/`, Arduino UNO R4 WiFi)  
+**Door schedule.** At sunrise the relays power the doors, which open. At 30 minutes after sunset they cut the power, and the doors close.  
+- `loft.ino`: the main loop, the USB serial test commands and the status printout.  
+- `config.h`: every setting (location, pins, open/close offsets, stagger delay, NTP intervals).  
+- `SolarSchedule.*`: offline NOAA sunrise/sunset maths (no libraries) and the stateless "should the doors be open now?" check. It works out the right state from scratch after any reboot.  
+- `DoorController.*`: relay switching. Pins are set to OFF first at boot. Doors open one at a time, 5 s apart; they close all at once.  
+- `TimeKeeper.*`: UTC clock in the R4's built-in RTC, synced from NTP over Wi-Fi at boot, then every 6 h (or every 5 min after a failed attempt).  
+- `secrets.example.h`: copy it to `secrets.h` (git-ignored) and fill in the Wi-Fi details.  
+
+**Rules the code follows:**  
+- All scheduling happens in UTC, so daylight saving cannot break it. Local time is used only for printing.  
+- If the clock has never been set, the doors stay **closed**.  
+- USB serial commands (115200 baud): `status`, `open`, `close`, `auto`, `settime <utc-epoch>`, `sync`. An `open`/`close` override lasts until the next scheduled sunrise or sunset change, so it can't be left on by accident.  
+- No third-party libraries. It needs only the "Arduino UNO R4 Boards" core, which includes `RTC.h` and `WiFiS3.h`.  
+
+---
+
 ## 4. Home Server  
 - **Dashboard & Broker:** Runs Home Assistant or Node-RED with a Mosquitto MQTT broker.  
 - **Data Storage:** Centralizes and stores all sensor telemetry, bird tracking logs, and system states from both the Loft and Release Cage Arduinos.  

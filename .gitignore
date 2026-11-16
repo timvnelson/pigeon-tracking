@@ -1,0 +1,8 @@
+# Wi-Fi passwords and other private settings
+secrets.h
+
+# Build output
+build/
+*.bin
+*.hex
+*.elf
