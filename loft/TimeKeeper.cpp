@@ -18,9 +18,11 @@ namespace TimeKeeper {
 
 static bool     s_valid = false;
 static uint32_t s_lastSync = 0;
+#if HAVE_WIFI_SECRETS
 static uint32_t s_lastAttemptMs = 0;
 static bool     s_attempted = false;
 static uint32_t s_waitS = 0;
+#endif
 
 static uint32_t rtcEpoch() {
   RTCTime t;
