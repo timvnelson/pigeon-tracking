@@ -7,11 +7,18 @@ leak sensors, separate mobile release cages, and a Home Assistant dashboard. See
 
 ## How this project is built
 
-The project owner, a pigeon keeper, designs the system and decides what gets
-built. The owner also tests every change on the real hardware in the loft
-before merging it. The code and docs are written with
-[Claude Code](https://claude.com/claude-code), an AI coding assistant, under
-the owner's direction. That's why commits list Claude as a co-author.
+Contributors are encouraged to use AI coding agents (Claude Code, or any
+other) to write code and docs. Every agent follows the same rules, set out in
+[AGENTS.md](AGENTS.md), and commits credit the agent as a co-author.
+
+**A human is always in charge of the results:**
+- People decide what gets built.
+- A person tests every change on real hardware before it's merged.
+- Any data the system collects (bird tracking, sensor readings, battery
+  status) is checked by a person against what really happened before anyone
+  relies on it.
+
+AI writes the code; humans verify that it works in the loft.
 
 ## Setting up your own loft
 
