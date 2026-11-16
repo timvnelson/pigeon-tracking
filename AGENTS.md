@@ -77,7 +77,7 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 **Before pushing code**  
 - Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed: `arduino-cli core install arduino:renesas_uno`). Fix all warnings.  
 - Compiling proves only that it builds. Describe what still needs testing on the hardware.  
-- **GitHub compile check** (`.github/workflows/compile.yml`): every push and PR is compiled on GitHub from the public `loft_settings.example.h`, both with and without Wi-Fi, and any error or warning in `loft/` fails it. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
+- **GitHub compile check** (`.github/workflows/compile.yml`): every change to a PR, and every merge into `main`, is compiled on GitHub from the public `loft_settings.example.h`, both with and without Wi-Fi, and any error or warning in `loft/` fails it. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
 
 **Working with a board on USB** (only if your agent runs on the computer the Arduino is plugged into)  
 - Find the port: `arduino-cli board list` (usually `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem…` on macOS, `COMx` on Windows).  
