@@ -3,32 +3,35 @@
 The hardware for the loft controller. The release cages use different hardware
 and will get their own list.
 
+**Status** shows where the reference loft's prototype is with each part:
+*Arriving* → *Received* → *Bench-tested* → *Installed*.
+
 ## Main parts
 
-| Part | Qty | Notes |
-|---|---|---|
-| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | The loft controller. Power it from the UPS through its USB-C port. |
-| [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
-| [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
-| [Ripom D3786 solar roll-up coop door](https://www.amazon.com/dp/B0H41MYJFB) | 1 per door (up to 8) | See "Doors" below. |
+| Part | Qty | Status | Notes |
+|---|---|---|---|
+| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Arriving 2026-11-17 | The loft controller. Power it from the UPS through its USB-C port. |
+| [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Arriving 2026-11-17 | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
+| [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | Arriving 2026-11-17 | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
+| [Ripom D3786 solar roll-up coop door](https://www.amazon.com/dp/B0H41MYJFB) | 1 per door (up to 8) | In use on solar power; not part of the bench prototype | See "Doors" below. |
 
 ## Wiring
 
-| Part | Notes |
-|---|---|
-| [18 AWG red/black zip wire, 100 ft](https://www.amazon.com/dp/B0CYFQM79X) | UPS to the doors. See "Wire runs" below. |
-| [MILAPEAK 5.5 x 2.1 mm DC barrel pigtails (18 AWG)](https://www.amazon.com/dp/B072BXB2Y8) | Plug into each door's power jack. |
-| [APIELE 15 A screw terminal blocks](https://www.amazon.com/dp/B0D7VRSH1G) | Distribution blocks for 5 V and ground. |
-| [Lever wire connectors, 2-pin](https://www.amazon.com/dp/B0H9YN2RV3) | Quick splices in 18 AWG wire. |
+| Part | Status | Notes |
+|---|---|---|
+| [18 AWG red/black zip wire, 100 ft](https://www.amazon.com/dp/B0CYFQM79X) | Arriving 2026-11-17 | UPS to the doors. See "Wire runs" below. |
+| [MILAPEAK 5.5 x 2.1 mm DC barrel pigtails (18 AWG)](https://www.amazon.com/dp/B072BXB2Y8) | Arriving 2026-11-17 | Plug into each door's power jack. |
+| [APIELE 15 A screw terminal blocks](https://www.amazon.com/dp/B0D7VRSH1G) | Arriving 2026-11-17 | Distribution blocks for 5 V and ground. |
+| [Lever wire connectors, 2-pin](https://www.amazon.com/dp/B0H9YN2RV3) | Arriving 2026-11-17 | Quick splices in 18 AWG wire. |
 
 ## Bought separately
 
-- **Three 18650 cells** for the UPS. Buy a reputable brand (Samsung, LG,
-  Molicel, Sony/Murata) from a reliable seller; cheap cells with inflated
-  ratings are common and can be unsafe.
-- A **USB-C cable** from the UPS to the Arduino.
-- **Jumper wires** from the Arduino to the relay inputs.
-- For the [bench test](3-bench-test.md): a breadboard, LEDs and 330 Ω resistors.
+| Part | Status | Notes |
+|---|---|---|
+| Three 18650 cells for the UPS | Received | Buy a reputable brand (Samsung, LG, Molicel, Sony/Murata) from a reliable seller; cheap cells with inflated ratings are common and can be unsafe. |
+| USB-C cable, UPS to Arduino | — | |
+| Jumper wires, Arduino to relay inputs | — | |
+| Breadboard, LEDs, 330 Ω resistors | Received | For the [bench test](3-bench-test.md). |
 
 ## Doors
 
@@ -60,4 +63,4 @@ is the voltage left at the door from a 5.0 V supply at 1 A, with 18 AWG wire
 | 60 ft | 0.77 V | 4.23 V (too close) |
 
 Relay contacts and connectors lose a little more. **For runs over about 40 ft,
-use 16 AWG** (35% less loss) **or 14 AWG** (60% less loss).
+use 16 AWG** (about a third less loss) **or 14 AWG** (60% less loss).
