@@ -48,8 +48,8 @@ it to read that file first.
 
 ### Automatic compile check
 
-Every push and pull request is compiled on GitHub automatically, and the pull
-request shows a ✓ or ✗. The check:
+Every change to a pull request, and every merge into `main`, is compiled on
+GitHub automatically, and the pull request shows a ✓ or ✗. The check:
 
 - builds from the public settings template, so the code is known to work for
   a new owner, not just on one person's computer
