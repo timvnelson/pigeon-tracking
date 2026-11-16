@@ -91,6 +91,7 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
   
 ## 2. Bird Loft Arduino Project  
 - **Microcontroller:** Arduino UNO R4 WiFi (32-bit Renesas RA4M1 + ESP32-S3 coprocessor, 5V GPIO logic, built-in RTC with VRTC coin-cell backup pin, USB-C, Qwiic/STEMMA QT connector).  
+    - **Power:** in the loft, the board runs from the 5 V distribution block through a USB-C male-to-pigtail cable. Its barrel jack and VIN pin need 6-24 V, so they can't run from the UPS's 5 V.  
 - **Entrance Doors:** 5 Ripom D3786 self-powered roll-up doors (see Section 0). One channel of the 8-channel 5V relay module per door switches the UPS 5V supply to that door's power input. Power on opens the door and charges it; power off closes it. The Arduino turns the relays on at sunrise and off at sunset using offline astronomical calculations (our own NOAA implementation in `loft/SolarSchedule.cpp`; no libraries).  
 - **RFID Tracking:** Multiple RC522 RFID readers (13.56 MHz, SPI communication, 3.3V VCC, 2-5 cm range) arranged in an array across a 3D-printed waterproof strip. Uses individual Slave Select (SS) pins to identify exact door/sensor positions.  
 - **Feeder Control:** Stepper motors controlled via driver modules (e.g., A4988/DRV8825) to regulate feeding access.  

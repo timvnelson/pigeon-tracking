@@ -10,7 +10,7 @@ and will get their own list.
 
 | Part | Qty | Status | Notes |
 |---|---|---|---|
-| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Arriving 2026-11-17 | The loft controller. Power it from the UPS through its USB-C port. |
+| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Arriving 2026-11-17 | The loft controller. In the loft, power it from the 5 V distribution block through its USB-C port (see the pigtail below). |
 | [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Arriving 2026-11-17 | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
 | [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | Arriving 2026-11-17 | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
 | [Ripom D3786 solar roll-up coop door](https://www.amazon.com/dp/B0H41MYJFB) | 1 per door (up to 8) | Received; out of service until wired power is installed (rats chewed the solar-panel cables). Not part of the bench prototype | See "Doors" below. |
@@ -29,7 +29,8 @@ and will get their own list.
 | Part | Status | Notes |
 |---|---|---|
 | Three 18650 cells for the UPS | Received | Buy a reputable brand (Samsung, LG, Molicel, Sony/Murata) from a reliable seller; cheap cells with inflated ratings are common and can be unsafe. |
-| USB-C cable (1-2) | — | One connects a computer to the Arduino, for uploading code and the Serial Monitor. In the loft, one connects the UPS's 5 V USB-C output to the Arduino. The same cable can do both jobs. |
+| USB-C data cable | Received | Connects a computer to the Arduino, for uploading code and the Serial Monitor. Also powers the board during the bench test. |
+| USB-C male to bare-wire pigtail | To buy | Powers the Arduino in the loft from the 5 V distribution block. Don't use the Arduino's barrel jack: it needs 6-24 V, so the UPS's 5 V won't run it. Check the pigtail's + and − with a multimeter before plugging it in. Unplug it whenever a computer is plugged in to upload code. |
 | Jumper wires, Arduino to relay inputs | Received | |
 | Breadboard, LEDs, 330 Ω resistors | Received | For the [bench test](3-bench-test.md). |
 
