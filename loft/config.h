@@ -76,6 +76,10 @@ static const uint32_t DOOR_STAGGER_MS = 5000;
 // The UNO R4's internal RTC drifts, so re-sync from the internet regularly.
 static const uint32_t NTP_RESYNC_INTERVAL_S = 6UL * 3600UL;  // every 6 hours
 static const uint32_t NTP_RETRY_INTERVAL_S  = 5UL * 60UL;    // after a failed try
+// Public NTP pool; the firmware asks it directly over UDP port 123.
+#define NTP_SERVER "pool.ntp.org"
+static const uint8_t  NTP_TRIES      = 3;     // requests per sync attempt
+static const uint32_t NTP_TIMEOUT_MS = 2000;  // wait for each reply
 
 // Any clock reading earlier than this is treated as "time not set".
 static const uint32_t MIN_VALID_EPOCH = 1767225600UL; // 2026-01-01 00:00:00 UTC
