@@ -152,6 +152,8 @@ Update this section on every feature branch so that once merged it describes wha
 **Wi-Fi today:** the board connects at boot to fetch the time and stays connected. A dropped connection is only noticed at the next time sync (up to 6 h). That's fine for the doors, which run from the RTC and never need Wi-Fi.  
 **Before the MQTT feature (planned `feat/loft-mqtt`):** add a Wi-Fi watchdog that checks the connection every ~10 s and reconnects with back-off without stalling the loop (`WiFi.begin()` blocks for ~10 s, long enough to miss an RFID read). Use `ArduinoMqttClient` with a keep-alive and Last Will so Home Assistant notices when the loft goes offline, and queue events while offline.  
 
+**Over-the-air updates (researched and tested once on a bare board 2026-11-17; planned after MQTT):** the core's `OTAUpdate` library downloads an `.ota` file over Wi-Fi and flashes it. `tools/ota/make_ota.py` builds the file, and `tools/ota/README.md` has the format, the test steps and the plan. The plan: a Home Assistant trigger (not automatic installs), a USB `update` command as a backup, and the update address in `loft_settings.h`. Every firmware version must keep the update code.  
+
 **Rules the code follows:**  
 - All scheduling happens in UTC, so daylight saving cannot break it. Local time is used only for printing.  
 - If the clock has never been set, the doors stay **closed**.  
