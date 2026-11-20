@@ -28,7 +28,24 @@ No transistors are needed; the relay is already the switch.
 - Power the module's VCC from the UPS 5 V output, not the Arduino's 5 V pin,
   and connect all the grounds together. Each relay coil draws about 70-80 mA,
   so five at once (~0.4 A) is too much to pull through the Arduino from USB.
-- Leave the module's JD-VCC jumper in place.
+- Leave the module's JD-VCC jumper in place (it joins VCC and JD-VCC in the
+  power corner). Then the module's single VCC powers both the input side and
+  the relay coils.
+
+| Relay module pin | Connect to |
+|---|---|
+| Power corner **VCC** | UPS 5 V (+) |
+| Power corner **GND** | UPS ground (−) |
+| Input header **IN1-IN5** | Arduino D2-D6 |
+| Input header **GND** | Arduino GND |
+| Input header **VCC** | **Nothing** |
+
+- **Leave the input header's VCC empty.** With the jumper on, it's already
+  joined to the UPS 5 V. Wiring the Arduino's 5 V to it would join two power
+  supplies, and with the board on a computer's USB that can push current back
+  into the computer.
+- **The Arduino's GND must connect to the module's GND.** The relay inputs
+  only work when the Arduino and the UPS share a ground.
 
 ## What to check
 
