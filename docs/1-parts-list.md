@@ -10,8 +10,9 @@ and will get their own list.
 
 | Part | Qty | Status | Notes |
 |---|---|---|---|
-| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Arriving 2026-11-17 | The loft controller. In the loft, power it from the 5 V distribution block through its USB-C port (see the pigtail below). |
+| [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Received | The loft controller. In the loft, power it from the 5 V distribution block through its USB-C port (see the pigtail below). |
 | [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Arriving 2026-11-17 | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
+| DS3231 real-time clock module, with coin cell | 1 | Arriving 2026-11-21 | Keeps accurate time (about a minute a year) and keeps it through a complete power loss. Needed because the UNO R4's own clock has no crystal: on the test board it ran 2.6% fast, about 37 minutes a day. Connects by I2C (address 0x68). Many cheap DS3231 boards (often labelled ZS-042) try to charge the coin cell: use a rechargeable LIR2032 in those, or remove the charging diode, because charging a normal CR2032 is unsafe. |
 | [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | Arriving 2026-11-17 | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
 | [Ripom D3786 solar roll-up coop door](https://www.amazon.com/dp/B0H41MYJFB) | 1 per door (up to 8) | Received; out of service until wired power is installed (rats chewed the solar-panel cables). Not part of the bench prototype | See "Doors" below. |
 
