@@ -47,4 +47,4 @@ Open the Serial Monitor at 115200 baud.
      number from https://www.unixtimestamp.com, entered as UTC.
    - Within a minute the LEDs should switch on their own.
    - The clock corrects itself at the next internet time sync (within
-     6 hours), or right away if you type `sync`.
+     an hour), or right away if you type `sync`.
