@@ -11,19 +11,20 @@ and will get their own list.
 | Part | Qty | Status | Notes |
 |---|---|---|---|
 | [Arduino UNO R4 WiFi (ABX00087)](https://www.amazon.com/dp/B0C8V88Z9D) | 1 | Received | The loft controller. In the loft, power it from the 5 V distribution block through its USB-C port (see the pigtail below). |
-| [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Arriving 2026-11-17 | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
+| [LAFVIN UPS Module 3S, 5 V 5 A](https://www.amazon.com/dp/B0G2SJPWLR) | 1 | Received | Battery backup for everything in the loft. Comes with its own charger power supply. Needs three 18650 cells (below). Can report its battery status over I2C. |
 | DS3231 real-time clock module, with coin cell | 1 | Arriving 2026-11-21 | Keeps accurate time (about a minute a year) and keeps it through a complete power loss. Needed because the UNO R4's own clock has no crystal: on the test board it ran 2.6% fast, about 37 minutes a day. Connects by I2C (address 0x68). Many cheap DS3231 boards (often labelled ZS-042) try to charge the coin cell: use a rechargeable LIR2032 in those, or remove the charging diode, because charging a normal CR2032 is unsafe. |
-| [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | Arriving 2026-11-17 | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
+| [ELEGOO 8-channel 5 V relay module](https://www.amazon.com/dp/B09ZQRLD95) | 1 | Received | One relay per door. Active-LOW inputs, a status LED per channel. Contacts rated 10 A. |
 | [Ripom D3786 solar roll-up coop door](https://www.amazon.com/dp/B0H41MYJFB) | 1 per door (up to 8) | Received; out of service until wired power is installed (rats chewed the solar-panel cables). Not part of the bench prototype | See "Doors" below. |
 
 ## Wiring
 
 | Part | Status | Notes |
 |---|---|---|
-| [18 AWG red/black zip wire, 100 ft](https://www.amazon.com/dp/B0CYFQM79X) | Arriving 2026-11-17 | UPS to the doors. See "Wire runs" below. |
-| [MILAPEAK 5.5 x 2.1 mm DC barrel pigtails (18 AWG)](https://www.amazon.com/dp/B072BXB2Y8) | Arriving 2026-11-17 | Plug into each door's power jack. |
-| [APIELE 15 A screw terminal blocks](https://www.amazon.com/dp/B0D7VRSH1G) | Arriving 2026-11-17 | Distribution blocks for 5 V and ground. |
-| [Lever wire connectors, 2-pin](https://www.amazon.com/dp/B0H9YN2RV3) | Arriving 2026-11-17 | Quick splices in 18 AWG wire. |
+| [18 AWG red/black zip wire, 100 ft](https://www.amazon.com/dp/B0CYFQM79X) | Received | UPS to the doors. See "Wire runs" below. |
+| 1 A fuses, one per door, with inline holders | Ordered | Safety: protects each door's wire if a door's charging circuit fails, since what's inside the door hasn't been checked. One per door, in the + wire after its relay, inside the controller box. A blown fuse cuts that door's power, so the door closes. A 1 A door at full charge runs right at the fuse's rating and may blow it; if that happens, measure that door's current before going up to 2 A. Each fuse also drops a little voltage (about 0.1 V), so check the door still gets at least 4.2 V. |
+| [MILAPEAK 5.5 x 2.1 mm DC barrel pigtails (18 AWG)](https://www.amazon.com/dp/B072BXB2Y8) | Received | Plug into each door's power jack. |
+| [APIELE 15 A screw terminal blocks](https://www.amazon.com/dp/B0D7VRSH1G) | Received | Distribution blocks for 5 V and ground. |
+| [Lever wire connectors, 2-pin](https://www.amazon.com/dp/B0H9YN2RV3) | Received | Quick splices in 18 AWG wire. |
 
 ## Bought separately
 
