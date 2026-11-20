@@ -73,9 +73,15 @@ static const bool RELAY_ACTIVE_LOW = true;
 static const uint32_t DOOR_STAGGER_MS = 5000;
 
 // ---- Time keeping -----------------------------------------------------------
-// The UNO R4's internal RTC drifts, so re-sync from the internet regularly.
-static const uint32_t NTP_RESYNC_INTERVAL_S = 6UL * 3600UL;  // every 6 hours
+// The UNO R4 WiFi's RTC has no crystal and runs from an internal oscillator.
+// On the test board it ran 2.6% fast (about 37 min a day, steady), so sync
+// every hour to keep the doors within about 1.5 min of the real time.
+static const uint32_t NTP_RESYNC_INTERVAL_S = 3600UL;        // every hour
 static const uint32_t NTP_RETRY_INTERVAL_S  = 5UL * 60UL;    // after a failed try
+// Public NTP pool; the firmware asks it directly over UDP port 123.
+#define NTP_SERVER "pool.ntp.org"
+static const uint8_t  NTP_TRIES      = 3;     // requests per sync attempt
+static const uint32_t NTP_TIMEOUT_MS = 2000;  // wait for each reply
 
 // Any clock reading earlier than this is treated as "time not set".
 static const uint32_t MIN_VALID_EPOCH = 1767225600UL; // 2026-01-01 00:00:00 UTC

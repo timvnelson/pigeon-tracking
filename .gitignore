@@ -6,3 +6,7 @@ build/
 *.bin
 *.hex
 *.elf
+
+# OTA test output (tools/ota/README.md)
+/build/
+/serve/
