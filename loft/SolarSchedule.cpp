@@ -28,9 +28,9 @@ void civilFromDays(int32_t z, int32_t &y, uint32_t &m, uint32_t &d) {
   y = (int32_t)yoe + era * 400 + (m <= 2);
 }
 
-bool sunTimesUtcMinutes(int32_t year, uint32_t month, uint32_t day,
-                        double lat, double lon,
-                        double &sunriseMin, double &sunsetMin) {
+SunDay sunTimesUtcMinutes(int32_t year, uint32_t month, uint32_t day,
+                          double lat, double lon,
+                          double &sunriseMin, double &sunsetMin) {
   // Julian Day at 00:00 UTC, then shifted to approximate local solar noon.
   const double jd0 = daysFromCivil(year, month, day) + 2440587.5;
   const double jd = jd0 + (720.0 - 4.0 * lon) / 1440.0;
@@ -59,38 +59,79 @@ bool sunTimesUtcMinutes(int32_t year, uint32_t month, uint32_t day,
   // 90.833 degrees = standard sunrise/sunset (refraction + solar disc radius).
   const double cosHA = cos(90.833 * DEG) / (cos(lat * DEG) * cos(decl)) -
                        tan(lat * DEG) * tan(decl);
-  if (cosHA > 1.0 || cosHA < -1.0) return false;  // polar night / midnight sun
-  const double haDeg = acos(cosHA) / DEG;
+  if (cosHA > 1.0) return SunDay::AlwaysDown;  // polar night
 
   const double solarNoon = 720.0 - 4.0 * lon - eqTime;
+  if (cosHA < -1.0) {  // midnight sun: daylight from one solar midnight to the next
+    sunriseMin = solarNoon - 720.0;
+    sunsetMin = solarNoon + 720.0;
+    return SunDay::AlwaysUp;
+  }
+  const double haDeg = acos(cosHA) / DEG;
   sunriseMin = solarNoon - 4.0 * haDeg;
   sunsetMin = solarNoon + 4.0 * haDeg;
-  return true;
+  return SunDay::Normal;
 }
 
 bool doorsShouldBeOpen(uint32_t nowUtc, uint32_t &nextChangeUtc) {
-  // Stateless: look at yesterday, today and tomorrow (UTC) and see whether
-  // `now` falls inside any open window. This gives the right answer straight
-  // after a reboot, at any time of day.
+  // Stateless: build the open windows for yesterday, today and tomorrow (UTC),
+  // join any that overlap, and see whether `now` falls inside one. This gives
+  // the right answer straight after a reboot, at any time of day.
+  struct Window { uint32_t start, end; bool allDay; int8_t day; };
+  Window w[3];
+  uint8_t n = 0;
   const int32_t today = (int32_t)(nowUtc / 86400UL);
-  bool open = false;
-  nextChangeUtc = 0;
 
-  for (int32_t dd = today - 1; dd <= today + 1; dd++) {
+  for (int8_t i = 0; i < 3; i++) {
+    const int32_t dd = today - 1 + i;
     int32_t y; uint32_t m, d;
     civilFromDays(dd, y, m, d);
-    double riseMin, setMin;
-    if (!sunTimesUtcMinutes(y, m, d, LOFT_LATITUDE, LOFT_LONGITUDE, riseMin, setMin)) continue;
+    double riseMin = 0, setMin = 0;
+    const SunDay kind = sunTimesUtcMinutes(y, m, d, LOFT_LATITUDE, LOFT_LONGITUDE, riseMin, setMin);
+    if (kind == SunDay::AlwaysDown) continue;  // no daylight: stays closed
 
     const double midnight = (double)dd * 86400.0;
-    const uint32_t openAt  = (uint32_t)(midnight + (riseMin + OPEN_OFFSET_MIN) * 60.0);
-    const uint32_t closeAt = (uint32_t)(midnight + (setMin + CLOSE_OFFSET_MIN) * 60.0);
-
-    if (nowUtc >= openAt && nowUtc < closeAt) open = true;
-    if (openAt > nowUtc && (nextChangeUtc == 0 || openAt < nextChangeUtc)) nextChangeUtc = openAt;
-    if (closeAt > nowUtc && (nextChangeUtc == 0 || closeAt < nextChangeUtc)) nextChangeUtc = closeAt;
+    Window win;
+    win.allDay = (kind == SunDay::AlwaysUp);
+    win.day = i;
+    if (win.allDay) {
+      // No sunrise or sunset to offset from. Widen the window by an hour on
+      // each side so that consecutive all-day windows overlap and the doors
+      // never close for a moment between them.
+      win.start = (uint32_t)(midnight + (riseMin - 60.0) * 60.0);
+      win.end   = (uint32_t)(midnight + (setMin + 60.0) * 60.0);
+    } else {
+      win.start = (uint32_t)(midnight + (riseMin + OPEN_OFFSET_MIN) * 60.0);
+      win.end   = (uint32_t)(midnight + (setMin + CLOSE_OFFSET_MIN) * 60.0);
+    }
+    if (win.end > win.start) w[n++] = win;
   }
-  return open;
+
+  // The windows are in date order. Walk through them, joining overlapping
+  // ones into continuous open periods.
+  nextChangeUtc = 0;
+  for (uint8_t i = 0; i < n;) {
+    const uint32_t start = w[i].start;
+    uint32_t end = w[i].end;
+    uint8_t last = i;
+    for (uint8_t j = i + 1; j < n && w[j].start <= end; j++) {
+      if (w[j].end > end) end = w[j].end;
+      last = j;
+    }
+    if (nowUtc >= start && nowUtc < end) {
+      // Open now. If the period runs into tomorrow's all-day window, it may
+      // carry on past what we calculated, so the closing time is unknown.
+      const bool openEnded = (w[last].day == 2 && w[last].allDay);
+      nextChangeUtc = openEnded ? 0 : end;
+      return true;
+    }
+    if (start > nowUtc) {  // the first period still to come
+      nextChangeUtc = start;
+      return false;
+    }
+    i = last + 1;
+  }
+  return false;
 }
 
 }  // namespace Solar
