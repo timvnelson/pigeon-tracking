@@ -59,6 +59,8 @@ GitHub automatically, and the pull request shows a ✓ or ✗. The check:
   a new owner, not just on one person's computer
 - builds both with and without Wi-Fi
 - fails on any error or compiler warning
+- runs tests of the sunrise/sunset maths and the door schedule
+  (`tests/host`), which need no board
 
 It's a sanity check that the code *builds*. It can't test the hardware, so a
 person still tests every change on a real board before merging.

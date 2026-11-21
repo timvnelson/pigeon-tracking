@@ -40,7 +40,7 @@ uint32_t nowUtc() { return rtcEpoch(); }
 uint32_t lastSyncUtc() { return s_lastSync; }
 
 bool setUtc(uint32_t epoch) {
-  if (epoch < MIN_VALID_EPOCH) return false;
+  if (epoch < MIN_VALID_EPOCH || epoch >= MAX_VALID_EPOCH) return false;
   RTCTime t((time_t)epoch);
   RTC.setTime(t);
   s_valid = true;
