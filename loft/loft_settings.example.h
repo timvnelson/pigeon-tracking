@@ -22,6 +22,7 @@
 // Two decimal places is plenty for sunrise/sunset (accurate to about 1 minute).
 #define LOFT_LATITUDE   0.00
 #define LOFT_LONGITUDE  0.00
+// The build stops while both are still 0.00.
 
 // ---- Time zone (used only for printing times; scheduling runs in UTC) -------
 // Offset of your STANDARD (winter) time from UTC, in minutes.

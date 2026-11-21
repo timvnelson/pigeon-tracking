@@ -12,6 +12,7 @@
 // USB serial (115200 baud) commands, for testing:
 //   status          show the time, schedule and door state
 //   open / close    override the schedule until its next open/close time
+//                   (for 1 hour if the clock isn't set)
 //   auto            cancel the override and follow the schedule
 //   settime <epoch> set the clock by hand (UTC Unix seconds, e.g. from
 //                   https://www.unixtimestamp.com)
@@ -27,6 +28,8 @@ static DoorController doors;
 
 enum class Override : uint8_t { None, Open, Close };
 static Override s_override = Override::None;
+static bool     s_overrideNoClock = false;  // override given while the clock wasn't set
+static uint32_t s_overrideStartMs = 0;
 static int8_t   s_lastScheduled = -1;   // -1 = not yet evaluated
 static uint32_t s_nextChangeUtc = 0;
 static uint32_t s_lastEvalMs = 0;
@@ -80,6 +83,25 @@ static void printLocalTime(uint32_t utc) {
   Serial.print(dst ? F(" daylight") : F(" standard"));
 }
 
+// ---------------------------------------------------------------- settings check
+
+// Catches the most common settings mistake: a west longitude entered as
+// positive (or an east one as negative). The sun crosses the meridian at
+// 12:00 UTC at longitude 0 and moves 15 degrees an hour, so a standard time
+// zone is almost always within 3 hours of longitude / 15. This only warns:
+// the schedule runs in UTC, and the time zone is used just for printing.
+static bool locationMatchesTimeZone() {
+  double diff = fmod((double)TZ_STANDARD_OFFSET_MIN - LOFT_LONGITUDE * 4.0, 1440.0);
+  if (diff > 720.0) diff -= 1440.0;
+  if (diff < -720.0) diff += 1440.0;
+  return fabs(diff) <= 240.0;
+}
+
+static void printLocationWarning() {
+  Serial.println(F("WARNING: LOFT_LONGITUDE doesn't match LOFT_TZ_STANDARD_OFFSET_MIN."));
+  Serial.println(F("         West longitudes are negative, east positive. Check loft_settings.h."));
+}
+
 // ---------------------------------------------------------------- scheduling
 
 // Returns 1 (open) or 0 (closed) according to the clock and the sun.
@@ -102,6 +124,11 @@ static void evaluate() {
       }
     }
     s_lastScheduled = sched;
+  }
+  if (s_override != Override::None && s_overrideNoClock &&
+      millis() - s_overrideStartMs >= OVERRIDE_NO_CLOCK_MAX_MS) {
+    Serial.println(F("[sched] manual override ended after 1 hour (clock not set)"));
+    s_override = Override::None;
   }
   bool open = sched == 1;
   if (s_override == Override::Open)  open = true;
@@ -132,11 +159,21 @@ static void printStatus() {
   }
   Serial.print(F("Override:    "));
   Serial.println(s_override == Override::Open ? F("OPEN") : s_override == Override::Close ? F("CLOSE") : F("none"));
+  if (!locationMatchesTimeZone()) printLocationWarning();
   Serial.print(F("Doors:       "));
   for (uint8_t i = 0; i < NUM_DOORS; i++) {
     Serial.print(i + 1); Serial.print(doors.isPowered(i) ? F("=ON ") : F("=off "));
   }
   Serial.println();
+}
+
+static void startOverride(Override o) {
+  s_override = o;
+  s_overrideStartMs = millis();
+  s_overrideNoClock = !TimeKeeper::isValid();
+  Serial.print(o == Override::Open ? F("[cmd] override: OPEN") : F("[cmd] override: CLOSE"));
+  Serial.println(s_overrideNoClock ? F(" for 1 hour (clock not set; 'auto' to cancel)")
+                                   : F(" until the next scheduled change ('auto' to cancel)"));
 }
 
 static void handleCommand(String cmd) {
@@ -146,20 +183,20 @@ static void handleCommand(String cmd) {
   if (cmd == "status") {
     printStatus();
   } else if (cmd == "open") {
-    s_override = Override::Open;
-    Serial.println(F("[cmd] override: OPEN until the next scheduled change ('auto' to cancel)"));
+    startOverride(Override::Open);
   } else if (cmd == "close") {
-    s_override = Override::Close;
-    Serial.println(F("[cmd] override: CLOSE until the next scheduled change ('auto' to cancel)"));
+    startOverride(Override::Close);
   } else if (cmd == "auto") {
     s_override = Override::None;
     Serial.println(F("[cmd] following the schedule"));
   } else if (cmd.startsWith("settime ")) {
-    const uint32_t epoch = (uint32_t)strtoul(cmd.substring(8).c_str(), nullptr, 10);
-    if (TimeKeeper::setUtc(epoch)) {
+    const String arg = cmd.substring(8);
+    char *end = nullptr;
+    const uint32_t epoch = (uint32_t)strtoul(arg.c_str(), &end, 10);
+    if (end != arg.c_str() && *end == '\0' && TimeKeeper::setUtc(epoch)) {
       Serial.print(F("[cmd] clock set to ")); printLocalTime(epoch); Serial.println();
     } else {
-      Serial.println(F("[cmd] rejected: expected a UTC Unix time after 2026-01-01"));
+      Serial.println(F("[cmd] rejected: expected a UTC Unix time from 2026 to 2099, digits only"));
     }
   } else if (cmd == "sync") {
     if (!TimeKeeper::hasWifiCredentials()) Serial.println(F("[cmd] no Wi-Fi configured in loft_settings.h"));
@@ -193,6 +230,7 @@ void setup() {
   Serial.print(F("\n[boot] Bird Loft controller: ")); Serial.print(F(LOFT_NAME));
   if (LOFT_OWNER[0]) { Serial.print(F(" (")); Serial.print(F(LOFT_OWNER)); Serial.print(')'); }
   Serial.println();
+  if (!locationMatchesTimeZone()) printLocationWarning();
   TimeKeeper::begin();
   TimeKeeper::update();  // first NTP attempt (if Wi-Fi is configured)
   evaluate();

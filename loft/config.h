@@ -24,6 +24,12 @@
 #if !defined(LOFT_TZ_STANDARD_OFFSET_MIN)
 #error "loft_settings.h must define LOFT_TZ_STANDARD_OFFSET_MIN."
 #endif
+static_assert(LOFT_LATITUDE >= -90.0 && LOFT_LATITUDE <= 90.0,
+              "LOFT_LATITUDE must be between -90 and 90 (south is negative).");
+static_assert(LOFT_LONGITUDE >= -180.0 && LOFT_LONGITUDE <= 180.0,
+              "LOFT_LONGITUDE must be between -180 and 180 (west is negative).");
+static_assert(LOFT_LATITUDE != 0.0 || LOFT_LONGITUDE != 0.0,
+              "LOFT_LATITUDE and LOFT_LONGITUDE are still 0.00: set your loft's location in loft_settings.h.");
 
 // ---- Optional per-loft settings, with defaults ------------------------------
 #ifndef LOFT_NAME
@@ -79,3 +85,10 @@ static const uint32_t NTP_RETRY_INTERVAL_S  = 5UL * 60UL;    // after a failed t
 
 // Any clock reading earlier than this is treated as "time not set".
 static const uint32_t MIN_VALID_EPOCH = 1767225600UL; // 2026-01-01 00:00:00 UTC
+// "settime" refuses anything from this date on, to catch a mistyped number.
+static const uint32_t MAX_VALID_EPOCH = 4102444800UL; // 2100-01-01 00:00:00 UTC
+
+// ---- Manual overrides -------------------------------------------------------
+// An "open"/"close" typed while the clock isn't set can't end at the next
+// sunrise or sunset, so it ends after this long instead.
+static const uint32_t OVERRIDE_NO_CLOCK_MAX_MS = 60UL * 60UL * 1000UL;  // 1 hour

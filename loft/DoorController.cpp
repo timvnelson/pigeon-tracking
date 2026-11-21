@@ -13,12 +13,19 @@ void DoorController::begin() {
   // Boot safety: the relay module is active-LOW, and a pin that briefly reads
   // LOW at start-up would power a door at night and start opening it. Until
   // this runs the pins are inputs (floating), and the module treats a floating
-  // input as OFF. Write OFF before and after switching to output, so that the
-  // pin starts at the OFF level whatever the board core does.
+  // input as OFF.
+  //
+  // On the UNO R4 core, pinMode(OUTPUT) rewrites the pin's whole config
+  // register with the output level cleared, so it drives LOW (relay ON) until
+  // the next digitalWrite, even if HIGH was written first. Instead, make the
+  // pin an output and set its OFF level in one register write.
+  const uint32_t offLevelCfg =
+      (levelFor(false) == HIGH) ? (uint32_t)IOPORT_CFG_PORT_OUTPUT_HIGH : 0UL;
   for (uint8_t i = 0; i < NUM_DOORS; i++) {
-    digitalWrite(DOOR_RELAY_PINS[i], levelFor(false));
-    pinMode(DOOR_RELAY_PINS[i], OUTPUT);
-    digitalWrite(DOOR_RELAY_PINS[i], levelFor(false));
+    const uint8_t pin = DOOR_RELAY_PINS[i];
+    R_IOPORT_PinCfg(NULL, g_pin_cfg[pin].pin,
+                    (uint32_t)IOPORT_CFG_PORT_DIRECTION_OUTPUT | offLevelCfg);
+    digitalWrite(pin, levelFor(false));  // belt and braces
     powered_[i] = false;
   }
   target_ = false;

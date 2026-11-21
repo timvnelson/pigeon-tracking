@@ -80,8 +80,9 @@ Any AI agent working on this repo should follow these rules, so every owner's ag
 
 **Before pushing code**  
 - Compile it: `arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi --warnings all loft` (with the "Arduino UNO R4 Boards" core installed: `arduino-cli core install arduino:renesas_uno`). Fix all warnings.  
+- Run the computer-side tests: `sh tests/host/run.sh` (needs a C++ compiler such as g++). They check the sunrise/sunset maths and the door schedule without a board.  
 - Compiling proves only that it builds. Describe what still needs testing on the hardware.  
-- **GitHub compile check** (`.github/workflows/compile.yml`): every change to a PR, and every merge into `main`, is compiled on GitHub from the public `loft_settings.example.h`, both with and without Wi-Fi, and any error or warning in `loft/` fails it. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
+- **GitHub compile check** (`.github/workflows/compile.yml`): every change to a PR, and every merge into `main`, is compiled on GitHub from the public `loft_settings.example.h` (with a real location filled in, because `config.h` refuses the template's 0.00, 0.00), both with and without Wi-Fi, and any error or warning in `loft/` fails it. The tests in `tests/host` run there too. It must show ✓ before the owner merges. If you change what the settings template must contain, keep the workflow working with it.  
 
 **Working with a board on USB** (only if your agent runs on the computer the Arduino is plugged into)  
 - Find the port: `arduino-cli board list` (usually `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem…` on macOS, `COMx` on Windows).  
@@ -141,8 +142,8 @@ Update this section on every feature branch so that once merged it describes wha
 **Door schedule.** At sunrise the relays power the doors, which open. At 30 minutes after sunset (configurable per loft) they cut the power, and the doors close.  
 - `loft.ino`: the main loop, the USB serial test commands, the status printout and the local-time display (US or EU daylight-saving rules, or none).  
 - `loft_settings.example.h`: template for the per-loft settings file (see "Per-loft data rule"). Covers the loft name, owner, location, time zone, Wi-Fi, door count (1-8) and optional open/close offsets.  
-- `config.h`: loads `loft_settings.h`, checks it, applies defaults, and holds the project-wide settings (pins, stagger delay, NTP intervals).  
-- `SolarSchedule.*`: offline NOAA sunrise/sunset maths (no libraries) and the stateless "should the doors be open now?" check. It works out the right state from scratch after any reboot.  
+- `config.h`: loads `loft_settings.h`, checks it (the build stops if the location is out of range or still 0.00, 0.00), applies defaults, and holds the project-wide settings (pins, stagger delay, NTP intervals).  
+- `SolarSchedule.*`: offline NOAA sunrise/sunset maths (no libraries) and the stateless "should the doors be open now?" check. It works out the right state from scratch after any reboot. Above the polar circles the doors stay open all day in the midnight sun and closed in the polar night.  
 - `DoorController.*`: relay switching. Pins are set to OFF first at boot. Doors open one at a time, 5 s apart; they close all at once.  
 - `TimeKeeper.*`: UTC clock in the R4's built-in RTC, synced from NTP over Wi-Fi at boot, then every 6 h (or every 5 min after a failed attempt).  
 
@@ -154,7 +155,8 @@ Update this section on every feature branch so that once merged it describes wha
 **Rules the code follows:**  
 - All scheduling happens in UTC, so daylight saving cannot break it. Local time is used only for printing.  
 - If the clock has never been set, the doors stay **closed**.  
-- USB serial commands (115200 baud): `status`, `open`, `close`, `auto`, `settime <utc-epoch>`, `sync`. An `open`/`close` override lasts until the next scheduled sunrise or sunset change, so it can't be left on by accident.  
+- USB serial commands (115200 baud): `status`, `open`, `close`, `auto`, `settime <utc-epoch>`, `sync`; anything else (e.g. `help`) lists them. An `open`/`close` override lasts until the next scheduled sunrise or sunset change, so it can't be left on by accident. If the clock isn't set when the override is given, it ends after 1 hour instead. `settime` accepts only digits, for a time from 2026 to 2099.  
+- At boot and in `status`, a warning is printed if the longitude doesn't fit the time zone (usually a west longitude entered as positive).  
 - No third-party libraries. It needs only the "Arduino UNO R4 Boards" core, which includes `RTC.h` and `WiFiS3.h`.  
 
 ---

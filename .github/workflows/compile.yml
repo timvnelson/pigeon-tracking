@@ -3,8 +3,10 @@
 # locally. It builds from the public template (loft_settings.example.h), not
 # anyone's private settings, so it proves the code works for a new owner.
 #
-# It only checks that the code builds. It cannot test the hardware; a person
-# still tests every change on a real board before merging (see AGENTS.md).
+# It also runs the computer-side tests of the schedule maths (tests/host).
+# It only checks that the code builds and the maths is right. It cannot test
+# the hardware; a person still tests every change on a real board before
+# merging (see AGENTS.md).
 name: Compile check
 
 on:
@@ -13,7 +15,19 @@ on:
   pull_request:        # every change to a pull request
   workflow_dispatch:   # "Run workflow" button on GitHub's Actions tab
 
+permissions:
+  contents: read       # the checks only read the code
+
 jobs:
+  host-tests:
+    # The schedule maths (sunrise, sunset, door windows), tested on the
+    # GitHub machine itself: no board or Arduino tools needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests/host
+        run: sh tests/host/run.sh
+
   compile:
     runs-on: ubuntu-latest
     strategy:
@@ -26,14 +40,22 @@ jobs:
       - uses: arduino/setup-arduino-cli@v2
 
       - name: Install the Arduino UNO R4 board package
+        # Pinned, so a new board-package release can't break the check without
+        # a code change. Raise it on purpose after testing the new version.
         run: |
           arduino-cli core update-index
-          arduino-cli core install arduino:renesas_uno
+          arduino-cli core install arduino:renesas_uno@1.6.0
 
       - name: Make settings from the public template
         run: |
-          # Remove the template's deliberate #error line, as a new owner would.
-          sed '/^#error/d' loft/loft_settings.example.h > loft/loft_settings.h
+          # Remove the template's deliberate #error line and give it a real
+          # location (Greenwich, UTC), as a new owner would. config.h stops the
+          # build while the template's 0.00, 0.00 location is left in.
+          sed -e '/^#error/d' \
+              -e 's|^#define LOFT_LATITUDE .*|#define LOFT_LATITUDE   51.48|' \
+              -e 's|^#define LOFT_TZ_STANDARD_OFFSET_MIN .*|#define LOFT_TZ_STANDARD_OFFSET_MIN  0|' \
+              loft/loft_settings.example.h > loft/loft_settings.h
+          grep -q '^#define LOFT_LATITUDE   51.48' loft/loft_settings.h
           if [ "${{ matrix.settings }}" = "without-wifi" ]; then
             sed -i 's|^#define LOFT_WIFI_|// #define LOFT_WIFI_|' loft/loft_settings.h
           fi
